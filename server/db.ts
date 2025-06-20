@@ -5,8 +5,14 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-// Use external Neon DB
-const DATABASE_URL = "postgresql://mitraai_owner:npg_sg0DNjWy8XJf@ep-odd-credit-a14feb62-pooler.ap-southeast-1.aws.neon.tech/mitraai?sslmode=require";
+// Use external Neon DB - override any environment variable
+const EXTERNAL_DATABASE_URL = "postgresql://mitraai_owner:npg_sg0DNjWy8XJf@ep-odd-credit-a14feb62-pooler.ap-southeast-1.aws.neon.tech/mitraai?sslmode=require";
 
-export const pool = new Pool({ connectionString: DATABASE_URL });
+if (!EXTERNAL_DATABASE_URL) {
+  throw new Error("External DATABASE_URL must be configured");
+}
+
+console.log("Using external Neon database:", EXTERNAL_DATABASE_URL.split('@')[1]?.split('/')[0] || 'configured');
+
+export const pool = new Pool({ connectionString: EXTERNAL_DATABASE_URL });
 export const db = drizzle({ client: pool, schema });
