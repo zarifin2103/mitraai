@@ -223,11 +223,31 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getActiveLlmModels(): Promise<LlmModel[]> {
-    return await db
-      .select()
-      .from(llmModels)
-      .where(eq(llmModels.isActive, true))
-      .orderBy(llmModels.displayName);
+    try {
+      console.log("🔍 Attempting to fetch active LLM models from database...");
+      
+      // Test raw query first
+      const rawResult = await db.execute(sql`SELECT * FROM llm_models WHERE is_active = true ORDER BY display_name`);
+      console.log("Raw query result:", rawResult.rows.length, "rows");
+      
+      // Transform to proper format
+      const result = rawResult.rows.map(row => ({
+        id: row.id as number,
+        modelId: row.model_id as string,
+        displayName: row.display_name as string,
+        provider: row.provider as string,
+        costPerMessage: row.cost_per_message as number,
+        isActive: row.is_active as boolean,
+        isFree: row.is_free as boolean,
+        createdAt: row.created_at as Date,
+        updatedAt: row.updated_at as Date,
+      }));
+      console.log("✅ Successfully fetched", result.length, "active models");
+      return result;
+    } catch (error) {
+      console.error("❌ Error fetching active models:", error);
+      throw error;
+    }
   }
 
   async createLlmModel(model: InsertLlmModel): Promise<LlmModel> {
