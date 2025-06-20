@@ -285,8 +285,12 @@ export default function AuthPage() {
       </div>
 
       {/* Right side - Feature showcase */}
-      <div className="flex-1 bg-primary text-white p-8 flex items-center justify-center">
-        <div className="max-w-lg text-center">
+      <div className="flex-1 relative text-white p-8 flex items-center justify-center bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url(/attached_assets/istockphoto-1344939844-612x612_1750426438456.jpg)' }}>
+        {/* Blue gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-blue-600/90 via-blue-700/85 to-blue-900/90"></div>
+        
+        {/* Content */}
+        <div className="relative z-10 max-w-lg text-center">
           <h2 className="text-3xl font-bold mb-6">
             Revolusi Penulisan Akademik dengan AI
           </h2>
@@ -320,7 +324,6 @@ export default function AuthPage() {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 }
