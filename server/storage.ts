@@ -445,11 +445,11 @@ export class DatabaseStorage implements IStorage {
 
   // User subscription operations
   async getAllUserSubscriptions(): Promise<UserSubscription[]> {
-    return await db.select().from(userSubscriptions).orderBy(desc(userSubscriptions.createdAt));
+    return await this.db.select().from(userSubscriptions).orderBy(desc(userSubscriptions.createdAt));
   }
 
   async getUserSubscription(userId: string): Promise<UserSubscription | undefined> {
-    const [subscription] = await db
+    const [subscription] = await this.db
       .select()
       .from(userSubscriptions)
       .where(and(eq(userSubscriptions.userId, userId), eq(userSubscriptions.status, "active")))
@@ -458,12 +458,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUserSubscription(subscription: InsertUserSubscription): Promise<UserSubscription> {
-    const [newSubscription] = await db.insert(userSubscriptions).values(subscription).returning();
+    const [newSubscription] = await this.db.insert(userSubscriptions).values(subscription).returning();
     return newSubscription;
   }
 
   async updateUserSubscription(id: number, updates: Partial<UserSubscription>): Promise<UserSubscription> {
-    const [updatedSubscription] = await db
+    const [updatedSubscription] = await this.db
       .update(userSubscriptions)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(userSubscriptions.id, id))
@@ -477,21 +477,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getUserPayments(userId: string): Promise<Payment[]> {
-    return await db.select().from(payments).where(eq(payments.userId, userId)).orderBy(desc(payments.createdAt));
+    return await this.db.select().from(payments).where(eq(payments.userId, userId)).orderBy(desc(payments.createdAt));
   }
 
   async getPayment(id: number): Promise<Payment | undefined> {
-    const [payment] = await db.select().from(payments).where(eq(payments.id, id));
+    const [payment] = await this.db.select().from(payments).where(eq(payments.id, id));
     return payment;
   }
 
   async createPayment(payment: InsertPayment): Promise<Payment> {
-    const [newPayment] = await db.insert(payments).values(payment).returning();
+    const [newPayment] = await this.db.insert(payments).values(payment).returning();
     return newPayment;
   }
 
   async updatePayment(id: number, updates: Partial<Payment>): Promise<Payment> {
-    const [updatedPayment] = await db
+    const [updatedPayment] = await this.db
       .update(payments)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(payments.id, id))
@@ -501,15 +501,15 @@ export class DatabaseStorage implements IStorage {
 
   // API usage log operations
   async getApiUsageLogs(limit: number = 100): Promise<ApiUsageLog[]> {
-    return await db.select().from(apiUsageLogs).orderBy(desc(apiUsageLogs.createdAt)).limit(limit);
+    return await this.db.select().from(apiUsageLogs).orderBy(desc(apiUsageLogs.createdAt)).limit(limit);
   }
 
   async getUserApiUsageLogs(userId: string): Promise<ApiUsageLog[]> {
-    return await db.select().from(apiUsageLogs).where(eq(apiUsageLogs.userId, userId)).orderBy(desc(apiUsageLogs.createdAt));
+    return await this.db.select().from(apiUsageLogs).where(eq(apiUsageLogs.userId, userId)).orderBy(desc(apiUsageLogs.createdAt));
   }
 
   async createApiUsageLog(log: InsertApiUsageLog): Promise<ApiUsageLog> {
-    const [newLog] = await db.insert(apiUsageLogs).values(log).returning();
+    const [newLog] = await this.db.insert(apiUsageLogs).values(log).returning();
     return newLog;
   }
 

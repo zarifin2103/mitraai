@@ -578,7 +578,10 @@ function PackagesTab() {
 
   if (isLoading) return <div>Loading packages...</div>;
 
-  const handleCreatePackage = async (formData: FormData) => {
+  const handleCreatePackage = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    
     try {
       const features = formData.get('features')?.toString().split('\n').filter(f => f.trim()) || [];
       
@@ -586,13 +589,13 @@ function PackagesTab() {
         method: 'POST',
         body: JSON.stringify({
           name: formData.get('name'),
-          description: formData.get('description'),
+          description: formData.get('description') || '',
           price: parseInt(formData.get('price')?.toString() || '0'),
           credits: parseInt(formData.get('credits')?.toString() || '0'),
           duration: parseInt(formData.get('duration')?.toString() || '30'),
           features,
-          isActive: formData.get('isActive') === 'true',
-          isPopular: formData.get('isPopular') === 'true',
+          isActive: true, // Default to active
+          isPopular: false, // Default to not popular
         }),
       });
       
@@ -600,6 +603,7 @@ function PackagesTab() {
       setIsCreateDialogOpen(false);
       toast({ title: "Package created successfully" });
     } catch (error) {
+      console.error('Package creation error:', error);
       toast({ title: "Failed to create package", variant: "destructive" });
     }
   };
@@ -616,7 +620,7 @@ function PackagesTab() {
             <DialogHeader>
               <DialogTitle>Create New Package</DialogTitle>
             </DialogHeader>
-            <form action={handleCreatePackage} className="space-y-4">
+            <form onSubmit={handleCreatePackage} className="space-y-4">
               <div>
                 <Label htmlFor="name">Package Name</Label>
                 <Input id="name" name="name" required />
