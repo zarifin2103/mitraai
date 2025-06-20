@@ -37,7 +37,8 @@ async function getOpenRouterClient(): Promise<OpenAI> {
 
 export async function generateAIResponse(
   messages: Array<{ role: "user" | "assistant" | "system"; content: string }>,
-  mode: "riset" | "create" | "edit"
+  mode: "riset" | "create" | "edit",
+  modelId?: string
 ): Promise<string> {
   try {
     const openai = await getOpenRouterClient();

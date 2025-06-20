@@ -72,6 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         chatId,
         role: "user",
         content,
+        modelId: modelId || null,
       });
 
       // Get conversation history
@@ -82,13 +83,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
 
       // Generate AI response
-      const aiResponse = await generateAIResponse(conversationHistory, mode);
+      const aiResponse = await generateAIResponse(conversationHistory, mode, modelId);
       
       // Add AI message
       const aiMessage = await storage.addMessage({
         chatId,
         role: "assistant",
         content: aiResponse,
+        modelId: modelId || null,
       });
 
       res.json({ userMessage, aiMessage });
@@ -99,6 +101,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Document routes
+  // LLM Models routes
+  app.get('/api/llm-models/active', async (req: any, res) => {
+    try {
+      const models = await storage.getActiveLlmModels();
+      res.json(models);
+    } catch (error) {
+      console.error("Error fetching active models:", error);
+      res.status(500).json({ message: "Failed to fetch models" });
+    }
+  });
+
+  app.get('/api/llm-models', isAuthenticated, async (req: any, res) => {
+    try {
+      if (req.user.username !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const models = await storage.getAllLlmModels();
+      res.json(models);
+    } catch (error) {
+      console.error("Error fetching models:", error);
+      res.status(500).json({ message: "Failed to fetch models" });
+    }
+  });
+
+  app.post('/api/llm-models', isAuthenticated, async (req: any, res) => {
+    try {
+      if (req.user.username !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const model = await storage.createLlmModel(req.body);
+      res.status(201).json(model);
+    } catch (error) {
+      console.error("Error creating model:", error);
+      res.status(500).json({ message: "Failed to create model" });
+    }
+  });
+
+  app.put('/api/llm-models/:modelId', isAuthenticated, async (req: any, res) => {
+    try {
+      if (req.user.username !== 'admin') {
+        return res.status(403).json({ message: "Admin access required" });
+      }
+      const modelId = req.params.modelId;
+      const model = await storage.updateLlmModel(modelId, req.body);
+      res.json(model);
+    } catch (error) {
+      console.error("Error updating model:", error);
+      res.status(500).json({ message: "Failed to update model" });
+    }
+  });
+
   app.get('/api/documents', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
