@@ -5,6 +5,7 @@ import {
   documents,
   adminSettings,
   llmModels,
+  userCredits,
   type User,
   type UpsertUser,
   type Chat,
@@ -17,6 +18,8 @@ import {
   type InsertAdminSetting,
   type LlmModel,
   type InsertLlmModel,
+  type UserCredits,
+  type InsertUserCredits,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -57,6 +60,12 @@ export interface IStorage {
   createLlmModel(model: InsertLlmModel): Promise<LlmModel>;
   updateLlmModel(modelId: string, updates: Partial<LlmModel>): Promise<LlmModel>;
   deleteLlmModel(modelId: string): Promise<void>;
+  
+  // User credits operations
+  getUserCredits(userId: string): Promise<UserCredits | undefined>;
+  createUserCredits(userCredits: InsertUserCredits): Promise<UserCredits>;
+  updateUserCredits(userId: string, updates: Partial<UserCredits>): Promise<UserCredits>;
+  deductCredits(userId: string, amount: number): Promise<UserCredits>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -240,6 +249,41 @@ export class DatabaseStorage implements IStorage {
 
   async deleteLlmModel(modelId: string): Promise<void> {
     await db.delete(llmModels).where(eq(llmModels.modelId, modelId));
+  }
+
+  // User credits operations
+  async getUserCredits(userId: string): Promise<UserCredits | undefined> {
+    const [credits] = await db.select().from(userCredits).where(eq(userCredits.userId, userId));
+    return credits;
+  }
+
+  async createUserCredits(userCreditsData: InsertUserCredits): Promise<UserCredits> {
+    const [newCredits] = await db
+      .insert(userCredits)
+      .values(userCreditsData)
+      .returning();
+    return newCredits;
+  }
+
+  async updateUserCredits(userId: string, updates: Partial<UserCredits>): Promise<UserCredits> {
+    const [updatedCredits] = await db
+      .update(userCredits)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(userCredits.userId, userId))
+      .returning();
+    return updatedCredits;
+  }
+
+  async deductCredits(userId: string, amount: number): Promise<UserCredits> {
+    const [updatedCredits] = await db
+      .update(userCredits)
+      .set({
+        usedCredits: sql`${userCredits.usedCredits} + ${amount}`,
+        updatedAt: new Date()
+      })
+      .where(eq(userCredits.userId, userId))
+      .returning();
+    return updatedCredits;
   }
 }
 

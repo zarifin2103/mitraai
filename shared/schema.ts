@@ -98,6 +98,16 @@ export const llmModels = pgTable("llm_models", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// User credits for managing AI usage
+export const userCredits = pgTable("user_credits", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  totalCredits: integer("total_credits").default(100),
+  usedCredits: integer("used_credits").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   chats: many(chats),
@@ -164,6 +174,12 @@ export const insertLlmModelSchema = createInsertSchema(llmModels).omit({
   updatedAt: true,
 });
 
+export const insertUserCreditsSchema = createInsertSchema(userCredits).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -177,3 +193,5 @@ export type AdminSetting = typeof adminSettings.$inferSelect;
 export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
 export type LlmModel = typeof llmModels.$inferSelect;
 export type InsertLlmModel = z.infer<typeof insertLlmModelSchema>;
+export type UserCredits = typeof userCredits.$inferSelect;
+export type InsertUserCredits = z.infer<typeof insertUserCreditsSchema>;

@@ -71,6 +71,10 @@ export default function ModelSelector({ selectedModel, onModelChange, disabled }
     }
   };
 
+  const cleanModelName = (displayName: string) => {
+    return displayName.replace(/\s+(free|Free|FREE)$/i, '').trim();
+  };
+
   const getCreditColor = (credits: number) => {
     if (credits === 0) return 'bg-green-100 text-green-800';
     if (credits <= 3) return 'bg-blue-100 text-blue-800';
@@ -97,7 +101,7 @@ export default function ModelSelector({ selectedModel, onModelChange, disabled }
                 <span className="text-lg">{getProviderIcon(model.provider)}</span>
                 <div>
                   <h4 className="font-medium text-gray-900 text-sm leading-tight">
-                    {model.displayName}
+                    {cleanModelName(model.displayName)}
                   </h4>
                   <p className="text-xs text-gray-500">{model.provider}</p>
                 </div>
@@ -125,7 +129,7 @@ export default function ModelSelector({ selectedModel, onModelChange, disabled }
             <span className="text-lg">{getProviderIcon(selectedModelData.provider)}</span>
             <div className="flex-1">
               <p className="text-sm font-medium text-blue-900">
-                Model Aktif: {selectedModelData.displayName}
+                Model Aktif: {cleanModelName(selectedModelData.displayName)}
               </p>
               <p className="text-xs text-blue-700">
                 Biaya: {selectedModelData.costPerMessage === 0 ? 'Gratis' : `${selectedModelData.costPerMessage} kredit per pesan`}
