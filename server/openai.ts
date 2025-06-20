@@ -1,8 +1,8 @@
 import OpenAI from "openai";
 import { storage } from "./storage";
 
-// the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-const DEFAULT_MODEL = "gpt-4o";
+// Using Google Gemma model as requested by user
+const DEFAULT_MODEL = "google/gemma-3n-e4b-it:free";
 
 async function getOpenRouterKey(): Promise<string> {
   // Use environment variable directly
@@ -46,18 +46,39 @@ export async function generateAIResponse(
     const systemPrompt = getSystemPrompt(mode);
     
     const response = await openai.chat.completions.create({
-      model: "openai/gpt-4o", // OpenRouter format for model specification
+      model: DEFAULT_MODEL,
       messages: [
-        { role: "system", content: systemPrompt },
-        ...messages,
+        { 
+          role: "system", 
+          content: [
+            {
+              type: "text",
+              text: systemPrompt,
+              cache_control: {
+                type: "ephemeral"
+              }
+            }
+          ]
+        },
+        ...messages.map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }))
       ],
-      max_tokens: 4000,
+      max_tokens: 1200,
       temperature: 0.7,
+      transforms: ["middle-out"],
     });
 
     return response.choices[0].message.content || "Maaf, saya tidak dapat memberikan respons saat ini.";
   } catch (error) {
     console.error("Error generating AI response:", error);
+    
+    // Fallback response when API is unavailable
+    if (error.message?.includes("402") || error.message?.includes("credits")) {
+      return generateFallbackResponse(mode, messages[messages.length - 1]?.content || "");
+    }
+    
     throw new Error("Gagal menghasilkan respons AI. Silakan coba lagi.");
   }
 }
@@ -96,14 +117,26 @@ export async function generateDocumentContent(
       : `Buat dokumen akademik berdasarkan permintaan: ${prompt}`;
 
     const response = await openai.chat.completions.create({
-      model: "openai/gpt-4o", // OpenRouter format for model specification
+      model: DEFAULT_MODEL,
       messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userPrompt },
+        { 
+          role: "system", 
+          content: [
+            {
+              type: "text",
+              text: systemPrompt,
+              cache_control: {
+                type: "ephemeral"
+              }
+            }
+          ]
+        },
+        { role: "user", content: userPrompt }
       ],
-      response_format: { type: "json_object" },
-      max_tokens: 4000,
+      max_tokens: 1200,
       temperature: 0.7,
+      transforms: ["middle-out"],
+      response_format: { type: "json_object" }
     });
 
     const result = JSON.parse(response.choices[0].message.content || "{}");
@@ -123,41 +156,129 @@ export async function generateDocumentContent(
 }
 
 function getSystemPrompt(mode: "riset" | "create" | "edit"): string {
+  const basePrompt = `Anda adalah Mitra AI menggunakan Google Gemma. Berikan respons dalam bahasa Indonesia yang jelas, terstruktur, dan ringkas.`;
+
   switch (mode) {
     case "riset":
-      return `Anda adalah asisten penelitian AI yang ahli dalam membantu penelitian akademik. 
-      Anda dapat membantu:
-      - Mencari dan menganalisis literatur terkait
-      - Memberikan saran metodologi penelitian
-      - Membantu mengidentifikasi gap penelitian
-      - Memberikan referensi dan sumber yang relevan
-      - Membantu merancang kerangka teoritis
-      
-      Berikan respons yang informatif, akurat, dan berbasis bukti ilmiah.`;
+      return `${basePrompt}
+
+Mode Riset - Bantu dengan:
+- Analisis literatur dan metodologi penelitian
+- Saran desain penelitian kualitatif/kuantitatif  
+- Formulasi pertanyaan dan hipotesis penelitian
+- Referensi jurnal akademik kredibel
+- Interpretasi data dan temuan
+
+Berikan jawaban terstruktur dengan subheading dan saran praktis.`;
       
     case "create":
-      return `Anda adalah asisten penulisan akademik yang membantu membuat dokumen akademik berkualitas tinggi.
-      Anda dapat membantu:
-      - Membuat outline dan struktur dokumen
-      - Mengembangkan argumen dan analisis
-      - Menyusun abstrak, pendahuluan, metodologi, hasil, dan kesimpulan
-      - Memberikan saran format dan gaya penulisan akademik
-      - Membantu mengintegrasikan referensi dan kutipan
-      
-      Pastikan semua konten mengikuti standar akademik dan etika penulisan.`;
+      return `${basePrompt}
+
+Mode Pembuatan Dokumen - Bantu dengan:
+- Outline dan struktur dokumen akademik
+- Penulisan bagian dokumen (abstrak, pendahuluan, metodologi, hasil, pembahasan)
+- Format citation APA/MLA/IEEE
+- Template sesuai standar jurnal
+- Pengembangan argumen yang kuat
+
+Pastikan konten sesuai kaidah penulisan ilmiah.`;
       
     case "edit":
-      return `Anda adalah editor akademik profesional yang membantu memperbaiki dan meningkatkan kualitas dokumen akademik.
-      Anda dapat membantu:
-      - Memperbaiki struktur dan alur argumen
-      - Meningkatkan kejelasan dan kohesi tulisan
-      - Memperbaiki tata bahasa dan gaya penulisan
-      - Memberikan saran untuk memperkuat argumen
-      - Membantu konsistensi format dan referensi
-      
-      Berikan saran perbaikan yang konstruktif dan spesifik.`;
+      return `${basePrompt}
+
+Mode Edit Dokumen - Bantu dengan:
+- Review struktur dan alur dokumen
+- Perbaikan koherensi dan clarity
+- Konsistensi format dan referensi
+- Saran perbaikan metodologi
+- Fact-checking dan verifikasi
+
+Berikan feedback konstruktif dan spesifik.`;
       
     default:
-      return "Anda adalah asisten AI yang membantu dalam pembuatan dokumen akademik.";
+      return `${basePrompt} Bantu dengan tugas akademik.`;
   }
+}
+
+function generateFallbackResponse(mode: "riset" | "create" | "edit", userInput: string): string {
+  const responses = {
+    riset: `# Metodologi Penelitian Kualitatif
+
+## Pengertian
+Penelitian kualitatif adalah pendekatan penelitian yang bertujuan memahami fenomena sosial dari perspektif partisipan penelitian. Pendekatan ini menggunakan metode pengumpulan data non-numerik.
+
+## Karakteristik Utama
+- **Naturalistik**: Dilakukan dalam setting alami
+- **Deskriptif**: Menghasilkan data deskriptif berupa kata-kata
+- **Induktif**: Membangun teori dari data yang dikumpulkan
+- **Holistik**: Memandang objek penelitian secara menyeluruh
+
+## Metode Pengumpulan Data
+1. **Observasi Partisipan**
+2. **Wawancara Mendalam**
+3. **Studi Dokumen**
+4. **Focus Group Discussion**
+
+## Langkah-langkah Penelitian
+1. Identifikasi masalah
+2. Studi literatur
+3. Penentuan subjek penelitian
+4. Pengumpulan data
+5. Analisis data
+6. Penarikan kesimpulan
+
+**Catatan**: Respons ini menggunakan fallback system. Untuk analisis yang lebih mendalam, pastikan OpenRouter API key memiliki kredit yang cukup.`,
+
+    create: `# Panduan Pembuatan Dokumen Akademik
+
+## Struktur Dokumen Akademik
+1. **Judul** - Jelas dan deskriptif
+2. **Abstrak** - Ringkasan maksimal 250 kata
+3. **Pendahuluan** - Latar belakang dan tujuan
+4. **Tinjauan Pustaka** - Review literatur terkait
+5. **Metodologi** - Cara penelitian dilakukan
+6. **Hasil dan Pembahasan** - Temuan dan analisis
+7. **Kesimpulan** - Ringkasan dan rekomendasi
+8. **Daftar Pustaka** - Referensi yang digunakan
+
+## Tips Penulisan
+- Gunakan bahasa formal dan objektif
+- Sertakan data dan fakta yang valid
+- Gunakan format citation yang konsisten (APA/MLA)
+- Pastikan alur logis antar bagian
+
+**Catatan**: Untuk bantuan penulisan yang lebih spesifik, pastikan OpenRouter API tersedia.`,
+
+    edit: `# Panduan Edit Dokumen Akademik
+
+## Aspek yang Perlu Diedit
+1. **Struktur dan Organisasi**
+   - Urutan logis paragraf
+   - Transisi antar bagian
+   - Koherensi keseluruhan
+
+2. **Bahasa dan Gaya**
+   - Tata bahasa yang benar
+   - Penggunaan istilah akademik
+   - Konsistensi gaya penulisan
+
+3. **Konten**
+   - Relevansi dengan topik
+   - Kedalaman analisis
+   - Dukungan data dan referensi
+
+4. **Format**
+   - Konsistensi citation
+   - Format heading dan subheading
+   - Tabel dan gambar
+
+## Tahap Editing
+1. **Content Edit** - Substansi dan struktur
+2. **Copy Edit** - Bahasa dan gaya
+3. **Proofreading** - Kesalahan teknis
+
+**Catatan**: Untuk review mendalam dokumen Anda, pastikan OpenRouter API aktif dengan kredit yang cukup.`
+  };
+
+  return responses[mode] || "Maaf, layanan AI sedang tidak tersedia. Silakan coba lagi nanti.";
 }
