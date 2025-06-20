@@ -87,6 +87,86 @@ async function generateResearchInsights(topic: string, chatId: number) {
 
   return { sources, keywords };
 }
+
+// Generate descriptive chat titles based on content and mode
+async function generateChatTitle(content: string, mode: string): Promise<string> {
+  const contentSummary = content.slice(0, 100).toLowerCase();
+  
+  // Mode-specific title generation
+  switch (mode) {
+    case "riset":
+      if (contentSummary.includes("permaculture")) return "Riset Permaculture";
+      if (contentSummary.includes("climate") || contentSummary.includes("iklim")) return "Riset Perubahan Iklim";
+      if (contentSummary.includes("education") || contentSummary.includes("pendidikan")) return "Riset Pendidikan";
+      if (contentSummary.includes("technology") || contentSummary.includes("teknologi")) return "Riset Teknologi";
+      if (contentSummary.includes("health") || contentSummary.includes("kesehatan")) return "Riset Kesehatan";
+      if (contentSummary.includes("economic") || contentSummary.includes("ekonomi")) return "Riset Ekonomi";
+      if (contentSummary.includes("social") || contentSummary.includes("sosial")) return "Riset Sosial";
+      
+      // Extract key research terms
+      const researchTerms = extractKeyTerms(content);
+      if (researchTerms.length > 0) {
+        return `Riset ${capitalize(researchTerms[0])}`;
+      }
+      return "Riset Akademik";
+      
+    case "create":
+      if (contentSummary.includes("proposal")) return "Proposal Penelitian";
+      if (contentSummary.includes("artikel") || contentSummary.includes("article")) return "Artikel Jurnal";
+      if (contentSummary.includes("laporan") || contentSummary.includes("report")) return "Laporan Penelitian";
+      if (contentSummary.includes("thesis") || contentSummary.includes("tesis")) return "Tesis Akademik";
+      if (contentSummary.includes("makalah") || contentSummary.includes("paper")) return "Makalah Ilmiah";
+      if (contentSummary.includes("skripsi")) return "Skripsi";
+      if (contentSummary.includes("disertasi")) return "Disertasi";
+      
+      // Extract document topic
+      const docTerms = extractKeyTerms(content);
+      if (docTerms.length > 0) {
+        return `Dokumen ${capitalize(docTerms[0])}`;
+      }
+      return "Dokumen Akademik";
+      
+    case "edit":
+      if (contentSummary.includes("grammar") || contentSummary.includes("tata bahasa")) return "Edit Tata Bahasa";
+      if (contentSummary.includes("structure") || contentSummary.includes("struktur")) return "Edit Struktur";
+      if (contentSummary.includes("reference") || contentSummary.includes("referensi")) return "Edit Referensi";
+      if (contentSummary.includes("format")) return "Edit Format";
+      
+      const editTerms = extractKeyTerms(content);
+      if (editTerms.length > 0) {
+        return `Edit ${capitalize(editTerms[0])}`;
+      }
+      return "Edit Dokumen";
+      
+    default:
+      return "Chat Akademik";
+  }
+}
+
+function extractKeyTerms(content: string): string[] {
+  const commonTerms = [
+    "permaculture", "permakultur", "climate", "iklim", "pendidikan", "education",
+    "teknologi", "technology", "kesehatan", "health", "ekonomi", "economic",
+    "sosial", "social", "lingkungan", "environment", "budaya", "culture",
+    "politik", "political", "hukum", "law", "psikologi", "psychology",
+    "komunikasi", "communication", "manajemen", "management", "bisnis", "business"
+  ];
+  
+  const words = content.toLowerCase().split(/\s+/);
+  const foundTerms = [];
+  
+  for (const term of commonTerms) {
+    if (words.some(word => word.includes(term))) {
+      foundTerms.push(term);
+    }
+  }
+  
+  return foundTerms.slice(0, 2); // Return max 2 terms
+}
+
+function capitalize(str: string): string {
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
 import { insertChatSchema, insertMessageSchema, insertDocumentSchema, insertAdminSettingSchema } from "@shared/schema";
 import { z } from "zod";
 
@@ -176,6 +256,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: aiResponse,
         modelId: modelId || null,
       });
+
+      // Generate descriptive title based on content and mode
+      if (messages.length <= 2) { // Only update title for new chats
+        const descriptiveTitle = await generateChatTitle(content, mode);
+        await storage.updateChatTitle(chatId, descriptiveTitle);
+      }
 
       res.json({ userMessage, aiMessage });
     } catch (error) {
