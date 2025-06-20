@@ -56,6 +56,7 @@ export const messages = pgTable("messages", {
   chatId: integer("chat_id").notNull().references(() => chats.id, { onDelete: "cascade" }),
   role: varchar("role", { enum: ["user", "assistant"] }).notNull(),
   content: text("content").notNull(),
+  modelId: varchar("model_id").references(() => llmModels.modelId),
   createdAt: timestamp("created_at").defaultNow(),
 });
 

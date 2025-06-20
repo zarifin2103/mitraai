@@ -69,6 +69,7 @@ export default function ChatArea({
       const response = await apiRequest("POST", `/api/chats/${chatId}/messages`, {
         content,
         mode,
+        modelId: selectedModel,
       });
       return response.json();
     },
@@ -284,21 +285,34 @@ export default function ChatArea({
 
 
         {messages.length === 0 && !isLoadingMessages && (
-          <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
-              <Bot className="h-4 w-4 text-primary-foreground" />
+          <div className="space-y-6">
+            {/* Model Selector */}
+            <div className="bg-white border border-border rounded-lg p-6 shadow-sm">
+              <h3 className="text-lg font-semibold mb-4 text-gray-900">Pilih Model AI</h3>
+              <ModelSelector 
+                selectedModel={selectedModel}
+                onModelChange={setSelectedModel}
+                disabled={sendMessageMutation.isPending}
+              />
             </div>
-            <div className="bg-white border border-border rounded-lg p-4 max-w-2xl shadow-sm">
-              <div className="text-foreground">
-                {mode === "riset" && 
-                  "Selamat datang di Mode Riset! Saya siap membantu Anda dalam penelitian dan mencari referensi akademik. Bagaimana saya dapat membantu Anda hari ini?"
-                }
-                {mode === "create" && 
-                  "Selamat datang di Mode Pembuatan Dokumen! Saya akan membantu Anda membuat dokumen akademik berkualitas tinggi. Ceritakan tentang dokumen yang ingin Anda buat."
-                }
-                {mode === "edit" && 
-                  "Selamat datang di Mode Edit Dokumen! Saya akan membantu Anda mengedit dan memperbaiki dokumen yang ada. Upload atau pilih dokumen yang ingin diedit."
-                }
+            
+            {/* Welcome Message */}
+            <div className="flex items-start space-x-3">
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                <Bot className="h-4 w-4 text-primary-foreground" />
+              </div>
+              <div className="bg-white border border-border rounded-lg p-4 max-w-2xl shadow-sm">
+                <div className="text-foreground">
+                  {mode === "riset" && 
+                    "Selamat datang di Mode Riset! Saya siap membantu Anda dalam penelitian dan mencari referensi akademik. Bagaimana saya dapat membantu Anda hari ini?"
+                  }
+                  {mode === "create" && 
+                    "Selamat datang di Mode Pembuatan Dokumen! Saya akan membantu Anda membuat dokumen akademik berkualitas tinggi. Ceritakan tentang dokumen yang ingin Anda buat."
+                  }
+                  {mode === "edit" && 
+                    "Selamat datang di Mode Edit Dokumen! Saya akan membantu Anda mengedit dan memperbaiki dokumen yang ada. Upload atau pilih dokumen yang ingin diedit."
+                  }
+                </div>
               </div>
             </div>
           </div>

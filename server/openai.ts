@@ -47,7 +47,7 @@ export async function generateAIResponse(
     const systemPrompt = getSystemPrompt(mode);
     
     const response = await openai.chat.completions.create({
-      model: DEFAULT_MODEL,
+      model: modelId || DEFAULT_MODEL,
       messages: [
         { role: "system", content: systemPrompt },
         ...messages.map(msg => ({
