@@ -1,0 +1,28 @@
+rest-express@1.0.0 dev
+> NODE_ENV=development tsx server/index.ts
+
+7:01:54 AM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+7:01:57 AM [express] GET /api/auth/user 401 in 3ms :: {"message":"Unauthorized"}
+7:02:01 AM [express] GET /api/auth/user 401 in 1ms :: {"message":"Unauthorized"}
+express deprecated req.host: Use req.hostname instead file:/home/runner/workspace/node_modules/openid-client/build/passport.js:165:49
+7:02:21 AM [express] GET /api/login 302 in 2037ms
+Error [ERR_HTTP_HEADERS_SENT]: Cannot set headers after they are sent to the client
+    at ServerResponse.setHeader (node:_http_outgoing:655:11)
+    at ServerResponse.header (/home/runner/workspace/node_modules/express/lib/response.js:794:10)
+    at ServerResponse.json (/home/runner/workspace/node_modules/express/lib/response.js:275:10)
+    at ServerResponse.res.json (/home/runner/workspace/server/index.ts:17:28)
+    at <anonymous> (/home/runner/workspace/server/index.ts:46:24)
+    at Layer.handle_error (/home/runner/workspace/node_modules/express/lib/router/layer.js:71:5)
+    at trim_prefix (/home/runner/workspace/node_modules/express/lib/router/index.js:326:13)
+    at /home/runner/workspace/node_modules/express/lib/router/index.js:286:9
+    at Function.process_params (/home/runner/workspace/node_modules/express/lib/router/index.js:346:12)
+    at Immediate.next (/home/runner/workspace/node_modules/express/lib/router/index.js:280:10)
+    at process.processImmediate (node:internal/timers:485:21)
+7:02:23 AM [express] GET /api/login 500 in 1618ms :: {"message":"relation \"sessions\" does not exis…
+error: relation "sessions" does not exist
+    at /home/runner/workspace/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async PGStore._asyncQuery (/home/runner/workspace/node_modules/connect-pg-simple/index.js:322:21)

@@ -8,8 +8,12 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
-if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+// Set default values for development if not provided
+if (!process.env.REPL_ID) {
+  process.env.REPL_ID = "5df6ef19-d519-4b6f-9a4e-9d418ff4025f";
+}
+if (!process.env.SESSION_SECRET) {
+  process.env.SESSION_SECRET = "mitra-ai-session-secret-key-2024";
 }
 
 const getOidcConfig = memoize(
@@ -27,7 +31,7 @@ export function getSession() {
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: "postgresql://mitraai_owner:npg_sg0DNjWy8XJf@ep-odd-credit-a14feb62-pooler.ap-southeast-1.aws.neon.tech/mitraai?sslmode=require",
-    createTableIfMissing: false,
+    createTableIfMissing: true,
     ttl: sessionTtl,
     tableName: "sessions",
   });
@@ -38,7 +42,7 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === "production", // Only secure in production
       maxAge: sessionTtl,
     },
   });
