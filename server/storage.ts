@@ -417,21 +417,21 @@ export class DatabaseStorage implements IStorage {
 
   // Subscription package operations
   async getAllSubscriptionPackages(): Promise<SubscriptionPackage[]> {
-    return await db.select().from(subscriptionPackages).orderBy(subscriptionPackages.price);
+    return await this.db.select().from(subscriptionPackages).orderBy(subscriptionPackages.price);
   }
 
   async getSubscriptionPackage(id: number): Promise<SubscriptionPackage | undefined> {
-    const [package_] = await db.select().from(subscriptionPackages).where(eq(subscriptionPackages.id, id));
+    const [package_] = await this.db.select().from(subscriptionPackages).where(eq(subscriptionPackages.id, id));
     return package_;
   }
 
   async createSubscriptionPackage(package_: InsertSubscriptionPackage): Promise<SubscriptionPackage> {
-    const [newPackage] = await db.insert(subscriptionPackages).values(package_).returning();
+    const [newPackage] = await this.db.insert(subscriptionPackages).values(package_).returning();
     return newPackage;
   }
 
   async updateSubscriptionPackage(id: number, updates: Partial<SubscriptionPackage>): Promise<SubscriptionPackage> {
-    const [updatedPackage] = await db
+    const [updatedPackage] = await this.db
       .update(subscriptionPackages)
       .set({ ...updates, updatedAt: new Date() })
       .where(eq(subscriptionPackages.id, id))
@@ -440,7 +440,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSubscriptionPackage(id: number): Promise<void> {
-    await db.delete(subscriptionPackages).where(eq(subscriptionPackages.id, id));
+    await this.db.delete(subscriptionPackages).where(eq(subscriptionPackages.id, id));
   }
 
   // User subscription operations
@@ -473,7 +473,7 @@ export class DatabaseStorage implements IStorage {
 
   // Payment operations
   async getAllPayments(): Promise<Payment[]> {
-    return await db.select().from(payments).orderBy(desc(payments.createdAt));
+    return await this.db.select().from(payments).orderBy(desc(payments.createdAt));
   }
 
   async getUserPayments(userId: string): Promise<Payment[]> {
@@ -515,7 +515,7 @@ export class DatabaseStorage implements IStorage {
 
   // System settings operations
   async getAllSystemSettings(): Promise<SystemSetting[]> {
-    return await db.select().from(systemSettings).orderBy(systemSettings.category, systemSettings.key);
+    return await this.db.select().from(systemSettings).orderBy(systemSettings.category, systemSettings.key);
   }
 
   async getSystemSetting(category: string, key: string): Promise<SystemSetting | undefined> {

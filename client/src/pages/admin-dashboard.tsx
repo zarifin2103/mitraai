@@ -266,7 +266,7 @@ export default function AdminDashboard() {
         </TabsContent>
 
         <TabsContent value="packages" className="space-y-3">
-          <PackagesTab packages={packages} isLoading={packagesLoading} />
+          <PackagesTab />
         </TabsContent>
 
         <TabsContent value="payments" className="space-y-3">
