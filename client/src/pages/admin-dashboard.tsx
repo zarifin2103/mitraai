@@ -568,9 +568,13 @@ function UsersTab() {
   );
 }
 
-function PackagesTab({ packages, isLoading }: { packages: SubscriptionPackage[], isLoading: boolean }) {
+function PackagesTab() {
   const { toast } = useToast();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  
+  const { data: packages = [], isLoading, refetch: refetchPackages } = useQuery<SubscriptionPackage[]>({
+    queryKey: ['/api/admin/packages'],
+  });
 
   if (isLoading) return <div>Loading packages...</div>;
 
@@ -592,7 +596,7 @@ function PackagesTab({ packages, isLoading }: { packages: SubscriptionPackage[],
         }),
       });
       
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/packages'] });
+      refetchPackages();
       setIsCreateDialogOpen(false);
       toast({ title: "Package created successfully" });
     } catch (error) {
@@ -654,7 +658,7 @@ function PackagesTab({ packages, isLoading }: { packages: SubscriptionPackage[],
       </div>
       
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {packages.map((pkg) => (
+        {packages && packages.length > 0 ? packages.map((pkg) => (
           <Card key={pkg.id} className={pkg.isPopular ? "border-primary" : ""}>
             <CardHeader>
               <div className="flex justify-between items-start">
@@ -689,7 +693,11 @@ function PackagesTab({ packages, isLoading }: { packages: SubscriptionPackage[],
               </Button>
             </CardContent>
           </Card>
-        ))}
+        )) : (
+          <div className="col-span-full text-center text-muted-foreground py-8">
+            {isLoading ? "Loading packages..." : "No packages found"}
+          </div>
+        )}
       </div>
     </div>
   );

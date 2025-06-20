@@ -519,7 +519,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getSystemSetting(category: string, key: string): Promise<SystemSetting | undefined> {
-    const [setting] = await db
+    const [setting] = await this.db
       .select()
       .from(systemSettings)
       .where(and(eq(systemSettings.category, category), eq(systemSettings.key, key)));
@@ -555,7 +555,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSystemSetting(id: number): Promise<void> {
-    await db.delete(systemSettings).where(eq(systemSettings.id, id));
+    await this.db.delete(systemSettings).where(eq(systemSettings.id, id));
   }
 
   // Research operations (existing methods from interface)
