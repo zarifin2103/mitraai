@@ -85,6 +85,9 @@ export interface IStorage {
   getChatResearchKeywords(chatId: number): Promise<ResearchKeyword[]>;
   addResearchKeyword(keyword: InsertResearchKeyword): Promise<ResearchKeyword>;
   updateKeywordFrequency(chatId: number, keyword: string): Promise<void>;
+  
+  // Chat title update operations
+  getAllChatsForTitleUpdate(): Promise<Chat[]>;
 }
 
 export class DatabaseStorage implements IStorage {

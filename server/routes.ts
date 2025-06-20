@@ -90,57 +90,54 @@ async function generateResearchInsights(topic: string, chatId: number) {
 
 // Generate descriptive chat titles based on content and mode
 async function generateChatTitle(content: string, mode: string): Promise<string> {
-  const contentSummary = content.slice(0, 100).toLowerCase();
-  
-  // Mode-specific title generation
-  switch (mode) {
-    case "riset":
-      if (contentSummary.includes("permaculture")) return "Riset Permaculture";
-      if (contentSummary.includes("climate") || contentSummary.includes("iklim")) return "Riset Perubahan Iklim";
-      if (contentSummary.includes("education") || contentSummary.includes("pendidikan")) return "Riset Pendidikan";
-      if (contentSummary.includes("technology") || contentSummary.includes("teknologi")) return "Riset Teknologi";
-      if (contentSummary.includes("health") || contentSummary.includes("kesehatan")) return "Riset Kesehatan";
-      if (contentSummary.includes("economic") || contentSummary.includes("ekonomi")) return "Riset Ekonomi";
-      if (contentSummary.includes("social") || contentSummary.includes("sosial")) return "Riset Sosial";
-      
-      // Extract key research terms
-      const researchTerms = extractKeyTerms(content);
-      if (researchTerms.length > 0) {
-        return `Riset ${capitalize(researchTerms[0])}`;
-      }
-      return "Riset Akademik";
-      
-    case "create":
-      if (contentSummary.includes("proposal")) return "Proposal Penelitian";
-      if (contentSummary.includes("artikel") || contentSummary.includes("article")) return "Artikel Jurnal";
-      if (contentSummary.includes("laporan") || contentSummary.includes("report")) return "Laporan Penelitian";
-      if (contentSummary.includes("thesis") || contentSummary.includes("tesis")) return "Tesis Akademik";
-      if (contentSummary.includes("makalah") || contentSummary.includes("paper")) return "Makalah Ilmiah";
-      if (contentSummary.includes("skripsi")) return "Skripsi";
-      if (contentSummary.includes("disertasi")) return "Disertasi";
-      
-      // Extract document topic
-      const docTerms = extractKeyTerms(content);
-      if (docTerms.length > 0) {
-        return `Dokumen ${capitalize(docTerms[0])}`;
-      }
-      return "Dokumen Akademik";
-      
-    case "edit":
-      if (contentSummary.includes("grammar") || contentSummary.includes("tata bahasa")) return "Edit Tata Bahasa";
-      if (contentSummary.includes("structure") || contentSummary.includes("struktur")) return "Edit Struktur";
-      if (contentSummary.includes("reference") || contentSummary.includes("referensi")) return "Edit Referensi";
-      if (contentSummary.includes("format")) return "Edit Format";
-      
-      const editTerms = extractKeyTerms(content);
-      if (editTerms.length > 0) {
-        return `Edit ${capitalize(editTerms[0])}`;
-      }
-      return "Edit Dokumen";
-      
-    default:
-      return "Chat Akademik";
+  if (!content || content.trim().length === 0) {
+    return mode === "riset" ? "Riset Baru" : mode === "create" ? "Buat Dokumen" : "Edit Dokumen";
   }
+
+  const text = content.toLowerCase().trim();
+  
+  // Specific topic detection
+  if (text.includes("permaculture") || text.includes("permakultur")) return "Riset Permaculture";
+  if (text.includes("climate") || text.includes("iklim")) return "Riset Perubahan Iklim";
+  if (text.includes("education") || text.includes("pendidikan")) return "Riset Pendidikan";
+  if (text.includes("technology") || text.includes("teknologi")) return "Riset Teknologi";
+  if (text.includes("health") || text.includes("kesehatan")) return "Riset Kesehatan";
+  if (text.includes("economic") || text.includes("ekonomi")) return "Riset Ekonomi";
+  if (text.includes("social") || text.includes("sosial")) return "Riset Sosial";
+  if (text.includes("lingkungan") || text.includes("environment")) return "Riset Lingkungan";
+  if (text.includes("budaya") || text.includes("culture")) return "Riset Budaya";
+  if (text.includes("politik") || text.includes("political")) return "Riset Politik";
+  
+  // Document types
+  if (text.includes("proposal")) return "Proposal Penelitian";
+  if (text.includes("artikel") || text.includes("article")) return "Artikel Jurnal";
+  if (text.includes("laporan") || text.includes("report")) return "Laporan Penelitian";
+  if (text.includes("makalah") || text.includes("paper")) return "Makalah Ilmiah";
+  if (text.includes("skripsi")) return "Skripsi";
+  if (text.includes("tesis") || text.includes("thesis")) return "Tesis";
+  if (text.includes("disertasi")) return "Disertasi";
+  
+  // Extract key terms for generic title
+  const keyTerms = extractKeyTerms(content);
+  if (keyTerms.length > 0) {
+    const prefix = mode === "riset" ? "Riset" : mode === "create" ? "Dokumen" : "Edit";
+    return `${prefix} ${capitalize(keyTerms[0])}`;
+  }
+  
+  // Fallback to first meaningful words
+  const words = text.split(/\s+/).filter(word => 
+    word.length > 3 && 
+    !["dengan", "untuk", "pada", "dalam", "dari", "yang", "adalah", "akan", "dapat", "bisa", "harus", "telah", "riset", "mengenai", "tentang", "buat", "buatkan"].includes(word)
+  );
+  
+  if (words.length > 0) {
+    const titleWords = words.slice(0, 2).map(capitalize);
+    const prefix = mode === "riset" ? "Riset" : mode === "create" ? "Dokumen" : "Edit";
+    return `${prefix} ${titleWords.join(" ")}`;
+  }
+  
+  // Final fallback
+  return content.slice(0, 35).trim() + (content.length > 35 ? "..." : "");
 }
 
 function extractKeyTerms(content: string): string[] {
@@ -200,11 +197,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/chats', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const { mode = "riset", title = "Percakapan Baru" } = req.body;
+      const { mode = "riset", title } = req.body;
+      
+      // Generate initial title based on mode
+      const initialTitle = title || {
+        riset: "Riset Baru",
+        create: "Buat Dokumen",
+        edit: "Edit Dokumen"
+      }[mode] || "Chat Baru";
       
       const chat = await storage.createChat({
         userId,
-        title,
+        title: initialTitle,
         mode,
       });
       
