@@ -501,8 +501,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async setSystemSetting(setting: InsertSystemSetting): Promise<SystemSetting> {
-    const [newSetting] = await db.insert(systemSettings).values(setting).returning();
-    return newSetting;
+    // Check if setting already exists
+    const existing = await this.getSystemSetting(setting.category, setting.key);
+    
+    if (existing) {
+      // Update existing setting
+      const [updatedSetting] = await db
+        .update(systemSettings)
+        .set({ ...setting, updatedAt: new Date() })
+        .where(eq(systemSettings.id, existing.id))
+        .returning();
+      return updatedSetting;
+    } else {
+      // Insert new setting
+      const [newSetting] = await db.insert(systemSettings).values(setting).returning();
+      return newSetting;
+    }
   }
 
   async updateSystemSetting(id: number, updates: Partial<SystemSetting>): Promise<SystemSetting> {

@@ -205,33 +205,130 @@ export default function AdminDashboard() {
 }
 
 function UsersTab({ users, isLoading }: { users: User[], isLoading: boolean }) {
+  const { toast } = useToast();
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
   if (isLoading) return <div>Loading users...</div>;
 
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveUser = async (formData: FormData) => {
+    if (!editingUser) return;
+
+    try {
+      const updates = {
+        username: formData.get('username')?.toString(),
+        email: formData.get('email')?.toString(),
+        firstName: formData.get('firstName')?.toString(),
+        lastName: formData.get('lastName')?.toString(),
+        isAdmin: formData.get('isAdmin') === 'on',
+      };
+
+      await apiRequest(`/api/admin/users/${editingUser.id}`, {
+        method: 'PUT',
+        body: JSON.stringify(updates),
+      });
+
+      toast({ title: "User updated successfully" });
+      setIsEditDialogOpen(false);
+      setEditingUser(null);
+      window.location.reload(); // Refresh to see changes
+    } catch (error) {
+      toast({ title: "Failed to update user", variant: "destructive" });
+    }
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>User Management</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {users.map((user) => (
-            <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-              <div>
-                <h3 className="font-semibold">{user.username}</h3>
-                <p className="text-sm text-muted-foreground">{user.email}</p>
-                <p className="text-xs text-muted-foreground">
-                  Joined: {new Date(user.createdAt).toLocaleDateString()}
-                </p>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>User Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            {users.map((user) => (
+              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div>
+                  <h3 className="font-semibold">{user.username}</h3>
+                  <p className="text-sm text-muted-foreground">{user.email}</p>
+                  <p className="text-xs text-muted-foreground">
+                    Joined: {new Date(user.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {user.isAdmin && <Badge variant="secondary">Admin</Badge>}
+                  <Button 
+                    variant="outline" 
+                    className="border-blue-600 text-blue-600 hover:bg-blue-50" 
+                    size="sm"
+                    onClick={() => handleEditUser(user)}
+                  >
+                    Edit
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                {user.isAdmin && <Badge variant="secondary">Admin</Badge>}
-                <Button variant="outline" size="sm">Edit</Button>
-              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit User</DialogTitle>
+          </DialogHeader>
+          <form action={handleSaveUser} className="space-y-4">
+            <div>
+              <Label htmlFor="username">Username</Label>
+              <Input 
+                id="username" 
+                name="username" 
+                defaultValue={editingUser?.username}
+                required 
+              />
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input 
+                id="email" 
+                name="email" 
+                type="email"
+                defaultValue={editingUser?.email}
+              />
+            </div>
+            <div>
+              <Label htmlFor="firstName">First Name</Label>
+              <Input 
+                id="firstName" 
+                name="firstName" 
+                defaultValue={editingUser?.firstName}
+              />
+            </div>
+            <div>
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input 
+                id="lastName" 
+                name="lastName" 
+                defaultValue={editingUser?.lastName}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="isAdmin" 
+                name="isAdmin" 
+                defaultChecked={editingUser?.isAdmin}
+              />
+              <Label htmlFor="isAdmin">Administrator</Label>
+            </div>
+            <Button type="submit" className="w-full">Save Changes</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -411,8 +508,15 @@ function PaymentsTab({ payments, isLoading }: { payments: Payment[], isLoading: 
 function ApiKeysTab() {
   const { toast } = useToast();
   const [openRouterKey, setOpenRouterKey] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSaveApiKey = async () => {
+    if (!openRouterKey.trim()) {
+      toast({ title: "Please enter an API key", variant: "destructive" });
+      return;
+    }
+
+    setIsLoading(true);
     try {
       await apiRequest('/api/admin/settings', {
         method: 'POST',
@@ -427,8 +531,12 @@ function ApiKeysTab() {
       });
       
       toast({ title: "API key saved successfully" });
+      setOpenRouterKey(""); // Clear the input after saving
     } catch (error) {
+      console.error("Error saving API key:", error);
       toast({ title: "Failed to save API key", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -448,7 +556,9 @@ function ApiKeysTab() {
               value={openRouterKey}
               onChange={(e) => setOpenRouterKey(e.target.value)}
             />
-            <Button onClick={handleSaveApiKey}>Save</Button>
+            <Button onClick={handleSaveApiKey} disabled={isLoading}>
+              {isLoading ? "Saving..." : "Save"}
+            </Button>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             This key will be used for AI model requests

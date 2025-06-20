@@ -584,16 +584,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/admin/settings', isAuthenticated, isAdmin, async (req: any, res) => {
-    try {
-      const setting = await storage.setSystemSetting(req.body);
-      res.status(201).json(setting);
-    } catch (error) {
-      console.error("Error creating setting:", error);
-      res.status(500).json({ message: "Failed to create setting" });
-    }
-  });
-
   app.put('/api/admin/settings/:id', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -677,12 +667,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/admin/settings', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
-      const validatedData = insertAdminSettingSchema.parse(req.body);
-      const setting = await storage.setAdminSetting(validatedData);
-      res.json(setting);
+      const { category, key, value, dataType, description, isPublic } = req.body;
+      
+      // For API keys, save to system_settings table instead of admin_settings
+      if (category === 'api_keys') {
+        const setting = await storage.setSystemSetting({
+          category,
+          key,
+          value,
+          dataType: dataType || 'string',
+          description,
+          isPublic: isPublic || false,
+        });
+        res.json(setting);
+      } else {
+        // Use admin settings for other configurations
+        const validatedData = insertAdminSettingSchema.parse(req.body);
+        const setting = await storage.setAdminSetting(validatedData);
+        res.json(setting);
+      }
     } catch (error) {
-      console.error("Error saving admin setting:", error);
-      res.status(500).json({ message: "Failed to save admin setting" });
+      console.error("Error saving setting:", error);
+      res.status(500).json({ message: "Failed to save setting" });
     }
   });
 
