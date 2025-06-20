@@ -8,7 +8,8 @@ import DocumentPreview from "@/components/document-preview";
 import AdminModal from "@/components/admin-modal";
 import DocumentModal from "@/components/document-modal";
 import { Button } from "@/components/ui/button";
-import { Settings, Menu, EyeOff } from "lucide-react";
+import { Settings, Menu, EyeOff, Shield } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Home() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -126,6 +127,20 @@ export default function Home() {
                 </span>
               </div>
               
+              {/* Admin Dashboard (Admin Only) */}
+              {user?.isAdmin && (
+                <Link href="/admin">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-orange-600 border-orange-600 hover:bg-orange-50"
+                  >
+                    <Shield className="h-4 w-4 mr-2" />
+                    Admin Panel
+                  </Button>
+                </Link>
+              )}
+
               {/* Admin Settings (Super Admin Only) */}
               {user?.isAdmin && (
                 <Button

@@ -458,7 +458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Admin routes (super admin only)
+  // Admin middleware
   const isAdmin = async (req: any, res: any, next: any) => {
     try {
       const user = req.user;
@@ -472,6 +472,193 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Failed to verify admin status" });
     }
   };
+
+  // Admin Routes
+  // Users management
+  app.get('/api/admin/users', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const users = await storage.getAllUsers();
+      res.json(users);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.put('/api/admin/users/:userId', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      const updates = req.body;
+      const user = await storage.updateUser(userId, updates);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
+    }
+  });
+
+  app.delete('/api/admin/users/:userId', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const userId = req.params.userId;
+      await storage.deleteUser(userId);
+      res.json({ message: "User deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Subscription packages management
+  app.get('/api/admin/packages', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const packages = await storage.getAllSubscriptionPackages();
+      res.json(packages);
+    } catch (error) {
+      console.error("Error fetching packages:", error);
+      res.status(500).json({ message: "Failed to fetch packages" });
+    }
+  });
+
+  app.post('/api/admin/packages', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const package_ = await storage.createSubscriptionPackage(req.body);
+      res.status(201).json(package_);
+    } catch (error) {
+      console.error("Error creating package:", error);
+      res.status(500).json({ message: "Failed to create package" });
+    }
+  });
+
+  app.put('/api/admin/packages/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const package_ = await storage.updateSubscriptionPackage(id, req.body);
+      res.json(package_);
+    } catch (error) {
+      console.error("Error updating package:", error);
+      res.status(500).json({ message: "Failed to update package" });
+    }
+  });
+
+  app.delete('/api/admin/packages/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteSubscriptionPackage(id);
+      res.json({ message: "Package deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting package:", error);
+      res.status(500).json({ message: "Failed to delete package" });
+    }
+  });
+
+  // Payments management
+  app.get('/api/admin/payments', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const payments = await storage.getAllPayments();
+      res.json(payments);
+    } catch (error) {
+      console.error("Error fetching payments:", error);
+      res.status(500).json({ message: "Failed to fetch payments" });
+    }
+  });
+
+  app.put('/api/admin/payments/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const payment = await storage.updatePayment(id, req.body);
+      res.json(payment);
+    } catch (error) {
+      console.error("Error updating payment:", error);
+      res.status(500).json({ message: "Failed to update payment" });
+    }
+  });
+
+  // System settings management
+  app.get('/api/admin/settings', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const settings = await storage.getAllSystemSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error("Error fetching settings:", error);
+      res.status(500).json({ message: "Failed to fetch settings" });
+    }
+  });
+
+  app.post('/api/admin/settings', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const setting = await storage.setSystemSetting(req.body);
+      res.status(201).json(setting);
+    } catch (error) {
+      console.error("Error creating setting:", error);
+      res.status(500).json({ message: "Failed to create setting" });
+    }
+  });
+
+  app.put('/api/admin/settings/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const setting = await storage.updateSystemSetting(id, req.body);
+      res.json(setting);
+    } catch (error) {
+      console.error("Error updating setting:", error);
+      res.status(500).json({ message: "Failed to update setting" });
+    }
+  });
+
+  app.delete('/api/admin/settings/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteSystemSetting(id);
+      res.json({ message: "Setting deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting setting:", error);
+      res.status(500).json({ message: "Failed to delete setting" });
+    }
+  });
+
+  // API usage logs
+  app.get('/api/admin/usage-logs', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const logs = await storage.getApiUsageLogs(limit);
+      res.json(logs);
+    } catch (error) {
+      console.error("Error fetching usage logs:", error);
+      res.status(500).json({ message: "Failed to fetch usage logs" });
+    }
+  });
+
+  // User subscriptions management
+  app.get('/api/admin/subscriptions', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const subscriptions = await storage.getAllUserSubscriptions();
+      res.json(subscriptions);
+    } catch (error) {
+      console.error("Error fetching subscriptions:", error);
+      res.status(500).json({ message: "Failed to fetch subscriptions" });
+    }
+  });
+
+  app.post('/api/admin/subscriptions', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const subscription = await storage.createUserSubscription(req.body);
+      res.status(201).json(subscription);
+    } catch (error) {
+      console.error("Error creating subscription:", error);
+      res.status(500).json({ message: "Failed to create subscription" });
+    }
+  });
+
+  app.put('/api/admin/subscriptions/:id', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const subscription = await storage.updateUserSubscription(id, req.body);
+      res.json(subscription);
+    } catch (error) {
+      console.error("Error updating subscription:", error);
+      res.status(500).json({ message: "Failed to update subscription" });
+    }
+  });
 
   app.get('/api/admin/settings', isAuthenticated, isAdmin, async (req: any, res) => {
     try {

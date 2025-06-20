@@ -6,6 +6,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/useAuth";
 import Home from "@/pages/home";
 import AuthPage from "@/pages/auth-page";
+import AdminDashboard from "@/pages/admin-dashboard";
+import AdminGuard from "@/components/admin-guard";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -29,6 +31,11 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
+          <Route path="/admin">
+            <AdminGuard>
+              <AdminDashboard />
+            </AdminGuard>
+          </Route>
         </>
       )}
       <Route component={NotFound} />
