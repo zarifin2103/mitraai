@@ -33,14 +33,23 @@ export default function ChatArea({
     error: messagesError,
     refetch: refetchMessages 
   } = useQuery<Message[]>({
-    queryKey: ["/api/chats", chatId, "messages"],
+    queryKey: [`/api/chats/${chatId}/messages`],
+    queryFn: async () => {
+      console.log(`🔄 Fetching messages for chat ${chatId}...`);
+      const response = await fetch(`/api/chats/${chatId}/messages`, {
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      const data = await response.json();
+      console.log(`✅ Messages fetched for chat ${chatId}:`, data?.length || 0, data);
+      return data;
+    },
     enabled: !!chatId,
     staleTime: 0,
     cacheTime: 0,
     refetchOnWindowFocus: true,
-    onSuccess: (data) => {
-      console.log(`✅ Messages loaded for chat ${chatId}:`, data?.length || 0, data);
-    },
     onError: (error) => {
       console.error("❌ Error fetching messages:", error);
     },
@@ -55,7 +64,7 @@ export default function ChatArea({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["/api/chats", chatId, "messages"]);
+      queryClient.invalidateQueries([`/api/chats/${chatId}/messages`]);
       queryClient.invalidateQueries(["/api/chats"]);
       setInput("");
       setIsTyping(false);
@@ -143,9 +152,7 @@ export default function ChatArea({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        <div className="text-xs text-blue-600 mb-2">
-          DEBUG: Chat {chatId} | Messages: {messages?.length || 0} | Loading: {isLoadingMessages ? 'Yes' : 'No'} | Error: {messagesError ? 'Yes' : 'No'}
-        </div>
+
 
         {messages.length === 0 && !isLoadingMessages && (
           <div className="flex items-start space-x-3">
@@ -202,7 +209,7 @@ export default function ChatArea({
                 }`}
               >
                 <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {msg.content || "⚠️ No content available"}
+                  {msg.content}
                 </div>
                 <div className="text-xs opacity-60 mt-2">
                   {new Date(msg.createdAt).toLocaleTimeString()}
