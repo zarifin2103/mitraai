@@ -1,8 +1,8 @@
 import OpenAI from "openai";
 import { storage } from "./storage";
 
-// Using Google Gemma model as requested by user
-const DEFAULT_MODEL = "google/gemma-3n-e4b-it:free";
+// Using free model that supports basic features
+const DEFAULT_MODEL = "meta-llama/llama-3.2-3b-instruct:free";
 
 async function getOpenRouterKey(): Promise<string> {
   // Use environment variable directly
@@ -48,26 +48,14 @@ export async function generateAIResponse(
     const response = await openai.chat.completions.create({
       model: DEFAULT_MODEL,
       messages: [
-        { 
-          role: "system", 
-          content: [
-            {
-              type: "text",
-              text: systemPrompt,
-              cache_control: {
-                type: "ephemeral"
-              }
-            }
-          ]
-        },
+        { role: "system", content: systemPrompt },
         ...messages.map(msg => ({
           role: msg.role,
           content: msg.content
         }))
       ],
-      max_tokens: 1200,
+      max_tokens: 800,
       temperature: 0.7,
-      transforms: ["middle-out"],
     });
 
     return response.choices[0].message.content || "Maaf, saya tidak dapat memberikan respons saat ini.";
@@ -75,7 +63,7 @@ export async function generateAIResponse(
     console.error("Error generating AI response:", error);
     
     // Fallback response when API is unavailable
-    if (error.message?.includes("402") || error.message?.includes("credits")) {
+    if (error.message?.includes("402") || error.message?.includes("credits") || error.message?.includes("404")) {
       return generateFallbackResponse(mode, messages[messages.length - 1]?.content || "");
     }
     
@@ -119,23 +107,11 @@ export async function generateDocumentContent(
     const response = await openai.chat.completions.create({
       model: DEFAULT_MODEL,
       messages: [
-        { 
-          role: "system", 
-          content: [
-            {
-              type: "text",
-              text: systemPrompt,
-              cache_control: {
-                type: "ephemeral"
-              }
-            }
-          ]
-        },
+        { role: "system", content: systemPrompt },
         { role: "user", content: userPrompt }
       ],
-      max_tokens: 1200,
+      max_tokens: 600,
       temperature: 0.7,
-      transforms: ["middle-out"],
       response_format: { type: "json_object" }
     });
 
