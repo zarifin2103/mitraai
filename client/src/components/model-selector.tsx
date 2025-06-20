@@ -21,6 +21,7 @@ interface LlmModel {
   displayName: string;
   provider: string;
   costPerMessage: number;
+  creditCost: number;
   isActive: boolean;
   isFree: boolean;
 }

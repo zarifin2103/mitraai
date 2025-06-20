@@ -311,8 +311,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         modelId: modelId || null,
       });
 
-      // Deduct 1 credit after successful AI response
-      await storage.deductCredits(userId, 1);
+      // Get model credit cost and deduct credits
+      const model = await storage.getLlmModel(modelId);
+      const creditCost = model ? model.creditCost : 1;
+      await storage.deductCredits(userId, creditCost);
 
       // Generate descriptive title based on content and mode
       if (messages.length <= 2) { // Only update title for new chats

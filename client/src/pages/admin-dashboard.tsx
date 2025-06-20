@@ -56,6 +56,86 @@ interface SystemSetting {
   isPublic: boolean;
 }
 
+function ModelsTab() {
+  const { toast } = useToast();
+  const { data: models = [], isLoading, refetch } = useQuery<LlmModel[]>({
+    queryKey: ['/api/admin/models'],
+  });
+
+  const updateModelMutation = useMutation({
+    mutationFn: async ({ modelId, creditCost, isActive }: { modelId: string, creditCost: number, isActive: boolean }) => {
+      return apiRequest(`/api/admin/models/${modelId}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ creditCost, isActive }),
+      });
+    },
+    onSuccess: () => {
+      toast({ title: "Model updated successfully" });
+      refetch();
+    },
+    onError: () => {
+      toast({ title: "Failed to update model", variant: "destructive" });
+    },
+  });
+
+  const handleUpdateModel = (modelId: string, creditCost: number, isActive: boolean) => {
+    updateModelMutation.mutate({ modelId, creditCost, isActive });
+  };
+
+  if (isLoading) return <div>Loading models...</div>;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>AI Model Management</CardTitle>
+        <CardDescription>
+          Configure credit costs and availability for each AI model
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {models.map((model) => (
+            <div key={model.modelId} className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex-1">
+                <h3 className="font-medium">{model.name}</h3>
+                <p className="text-sm text-gray-500">{model.modelId}</p>
+                <p className="text-xs text-gray-400">{model.provider}</p>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium">Credits:</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="10"
+                    defaultValue={model.creditCost}
+                    className="w-20"
+                    onBlur={(e) => {
+                      const creditCost = parseInt(e.target.value) || 1;
+                      if (creditCost !== model.creditCost) {
+                        handleUpdateModel(model.modelId, creditCost, model.isActive);
+                      }
+                    }}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-medium">Active:</label>
+                  <Switch
+                    checked={model.isActive}
+                    onCheckedChange={(isActive) => {
+                      handleUpdateModel(model.modelId, model.creditCost, isActive);
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function AdminDashboard() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("overview");
@@ -119,7 +199,7 @@ export default function AdminDashboard() {
           </TabsTrigger>
           <TabsTrigger value="api-keys" className="flex items-center gap-2">
             <Key className="h-4 w-4" />
-            API Keys
+            AI Models
           </TabsTrigger>
           <TabsTrigger value="settings" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />

@@ -336,6 +336,14 @@ export class DatabaseStorage implements IStorage {
     await db.delete(llmModels).where(eq(llmModels.modelId, modelId));
   }
 
+  async getLlmModel(modelId: string): Promise<LlmModel | undefined> {
+    const [model] = await db
+      .select()
+      .from(llmModels)
+      .where(eq(llmModels.modelId, modelId));
+    return model;
+  }
+
   // User credits operations
   async getUserCredits(userId: string): Promise<UserCredits | undefined> {
     const [credits] = await db.select().from(userCredits).where(eq(userCredits.userId, userId));
