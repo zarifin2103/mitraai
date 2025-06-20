@@ -1,20 +1,19 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated } from "./auth";
 import { generateAIResponse, generateDocumentContent } from "./openai";
 import { insertChatSchema, insertMessageSchema, insertDocumentSchema, insertAdminSettingSchema } from "@shared/schema";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  await setupAuth(app);
+  setupAuth(app);
 
-  // Auth routes
+  // Auth routes (handled in auth.ts)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       res.json(user);
     } catch (error) {
       console.error("Error fetching user:", error);
@@ -25,7 +24,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat routes
   app.get('/api/chats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const chats = await storage.getUserChats(userId);
       res.json(chats);
     } catch (error) {
@@ -36,7 +35,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/chats', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const validatedData = insertChatSchema.parse({
         ...req.body,
         userId,
@@ -100,7 +99,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Document routes
   app.get('/api/documents', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const documents = await storage.getUserDocuments(userId);
       res.json(documents);
     } catch (error) {
@@ -127,7 +126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/documents', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const { prompt, existingContent } = req.body;
       
       // Generate document content using AI
@@ -173,8 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes (super admin only)
   const isAdmin = async (req: any, res: any, next: any) => {
     try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
+      const user = req.user;
       
       if (!user?.isAdmin) {
         return res.status(403).json({ message: "Admin access required" });

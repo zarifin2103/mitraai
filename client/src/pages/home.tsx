@@ -21,20 +21,13 @@ export default function Home() {
   const [activeChatId, setActiveChatId] = useState<number | null>(null);
   const [activeDocumentId, setActiveDocumentId] = useState<number | null>(null);
 
-  // Redirect to home if not authenticated
+  // Redirect to auth page if not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
+      window.location.href = "/";
       return;
     }
-  }, [isAuthenticated, isLoading, toast]);
+  }, [isAuthenticated, isLoading]);
 
   const handleModeChange = (mode: "riset" | "create" | "edit") => {
     setActiveMode(mode);
@@ -129,7 +122,7 @@ export default function Home() {
                   />
                 )}
                 <span className="font-medium">
-                  {user?.firstName || user?.email || "User"}
+                  {user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : user?.username || "User"}
                 </span>
               </div>
               
@@ -148,7 +141,15 @@ export default function Home() {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => window.location.href = "/api/logout"}
+                onClick={async () => {
+                  try {
+                    await fetch("/api/logout", { method: "POST" });
+                    window.location.reload();
+                  } catch (error) {
+                    console.error("Logout error:", error);
+                    window.location.reload();
+                  }
+                }}
               >
                 Logout
               </Button>
