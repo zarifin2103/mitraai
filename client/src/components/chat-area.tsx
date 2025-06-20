@@ -51,7 +51,7 @@ export default function ChatArea({
     },
     enabled: !!chatId,
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
     refetchOnWindowFocus: true,
     onError: (error) => {
       console.error("❌ Error fetching messages:", error);
@@ -92,7 +92,7 @@ export default function ChatArea({
   });
 
   const handleSendMessage = () => {
-    if (!input.trim() || !chatId || sendMessageMutation.isLoading) return;
+    if (!input.trim() || !chatId || sendMessageMutation.isPending) return;
     
     setIsTyping(true);
     sendMessageMutation.mutate({ 
@@ -246,22 +246,26 @@ export default function ChatArea({
                 
                 <div className="text-sm leading-relaxed">
                   {msg.role === "assistant" ? (
-                    <ReactMarkdown 
-                      remarkPlugins={[remarkGfm]}
-                      className="prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-800 prose-strong:text-gray-900 prose-ul:text-gray-800 prose-ol:text-gray-800"
-                      components={{
-                        h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-2 text-gray-800" {...props} />,
-                        h2: ({node, ...props}) => <h2 className="text-base font-semibold mb-2 text-gray-800" {...props} />,
-                        h3: ({node, ...props}) => <h3 className="text-sm font-semibold mb-1 text-gray-800" {...props} />,
-                        ul: ({node, ...props}) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
-                        ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
-                        li: ({node, ...props}) => <li className="text-gray-800" {...props} />,
-                        p: ({node, ...props}) => <p className="mb-2 text-gray-800" {...props} />,
-                        strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
-                      }}
-                    >
-                      {msg.content}
-                    </ReactMarkdown>
+                    <div className="prose prose-sm max-w-none">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        components={{
+                          h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-2 text-gray-800" {...props} />,
+                          h2: ({node, ...props}) => <h2 className="text-base font-semibold mb-2 text-gray-800" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-sm font-semibold mb-1 text-gray-800" {...props} />,
+                          ul: ({node, ...props}) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+                          ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+                          li: ({node, ...props}) => <li className="text-gray-800" {...props} />,
+                          p: ({node, ...props}) => <p className="mb-2 text-gray-800" {...props} />,
+                          strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                          em: ({node, ...props}) => <em className="italic text-gray-800" {...props} />,
+                          code: ({node, ...props}) => <code className="bg-gray-200 px-1 py-0.5 rounded text-sm font-mono" {...props} />,
+                          blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-700" {...props} />,
+                        }}
+                      >
+                        {msg.content}
+                      </ReactMarkdown>
+                    </div>
                   ) : (
                     <div className="whitespace-pre-wrap">
                       {msg.content}
@@ -314,11 +318,11 @@ export default function ChatArea({
                 : "Jelaskan bagian yang ingin diedit..."
             }
             className="flex-1 min-h-[60px] max-h-[120px] resize-none"
-            disabled={!chatId || sendMessageMutation.isLoading}
+            disabled={!chatId || sendMessageMutation.isPending}
           />
           <Button
             onClick={handleSendMessage}
-            disabled={!input.trim() || !chatId || sendMessageMutation.isLoading}
+            disabled={!input.trim() || !chatId || sendMessageMutation.isPending}
             size="lg"
             className="px-6"
           >
@@ -326,7 +330,7 @@ export default function ChatArea({
           </Button>
         </div>
         
-        {sendMessageMutation.isLoading && (
+        {sendMessageMutation.isPending && (
           <div className="text-xs text-gray-500 mt-2">
             Mengirim pesan...
           </div>
