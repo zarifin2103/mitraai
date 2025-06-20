@@ -15,11 +15,11 @@
     },
     {
       "source": "/((?!api/).*\\..{1,5}$)",
-      "destination": "/public/$1"
+      "destination": "/dist/public/$1"
     },
     {
       "source": "/(.*)",
-      "destination": "/public/index.html"
+      "destination": "/dist/public/index.html"
     }
   ]
 }
