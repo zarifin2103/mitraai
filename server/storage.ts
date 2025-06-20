@@ -360,6 +360,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deductCredits(userId: string, amount: number): Promise<UserCredits> {
+    // First check if user has enough credits
+    const currentCredits = await this.getUserCredits(userId);
+    if (!currentCredits) {
+      throw new Error(`User credits not found for user ${userId}`);
+    }
+
+    const remainingCredits = currentCredits.totalCredits - currentCredits.usedCredits;
+    if (remainingCredits < amount) {
+      throw new Error(`Insufficient credits. Required: ${amount}, Available: ${remainingCredits}`);
+    }
+
+    // Deduct credits
     const [updatedCredits] = await db
       .update(userCredits)
       .set({
@@ -368,6 +380,12 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(userCredits.userId, userId))
       .returning();
+
+    if (!updatedCredits) {
+      throw new Error(`Failed to deduct credits for user ${userId}`);
+    }
+    
+    console.log(`✅ Deducted ${amount} credits from user ${userId}. New balance: ${updatedCredits.totalCredits - updatedCredits.usedCredits}`);
     return updatedCredits;
   }
 

@@ -74,18 +74,43 @@ export default function ChatArea({
 
   const sendMessageMutation = useMutation({
     mutationFn: async ({ content, mode }: { content: string; mode: string }) => {
-      const response = await apiRequest("POST", `/api/chats/${chatId}/messages`, {
-        content,
-        mode,
-        modelId: selectedModel,
+      const response = await fetch(`/api/chats/${chatId}/messages`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          content,
+          mode,
+          modelId: selectedModel,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (response.status === 402) {
+          throw new Error(errorData.message || "Insufficient credits");
+        }
+        throw new Error(errorData.message || "Failed to send message");
+      }
+
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries([`/api/chats/${chatId}/messages`]);
       queryClient.invalidateQueries(["/api/chats"]);
+      queryClient.invalidateQueries(['/api/user/credits']); // Refresh credits
       setInput("");
       setIsTyping(false);
+      
+      // Show credits remaining if provided
+      if (data.creditsRemaining !== undefined) {
+        toast({
+          title: "Message sent successfully",
+          description: `Credits remaining: ${data.creditsRemaining.toLocaleString()}`,
+        });
+      }
     },
     onError: (error: Error) => {
       setIsTyping(false);
@@ -98,11 +123,21 @@ export default function ChatArea({
         setTimeout(() => window.location.href = "/api/login", 1000);
         return;
       }
-      toast({
-        title: "Error",
-        description: "Failed to send message. Please try again.",
-        variant: "destructive",
-      });
+
+      // Handle insufficient credits
+      if (error.message?.includes("credits")) {
+        toast({
+          title: "Insufficient Credits",
+          description: "Please contact admin to add more credits to your account",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to send message. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
   });
 

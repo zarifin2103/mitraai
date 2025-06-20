@@ -275,6 +275,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!chatBelongsToUser) {
         return res.status(403).json({ message: "Access denied to this chat" });
       }
+
+      // Check user credits before processing
+      const userCredits = await storage.getUserCredits(userId);
+      if (!userCredits || (userCredits.totalCredits - userCredits.usedCredits) <= 0) {
+        return res.status(402).json({ 
+          message: "Insufficient credits. Please contact admin to add more credits.",
+          creditsRemaining: userCredits ? userCredits.totalCredits - userCredits.usedCredits : 0
+        });
+      }
       
       // Add user message
       const userMessage = await storage.addMessage({
@@ -302,13 +311,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         modelId: modelId || null,
       });
 
+      // Deduct 1 credit after successful AI response
+      await storage.deductCredits(userId, 1);
+
       // Generate descriptive title based on content and mode
       if (messages.length <= 2) { // Only update title for new chats
         const descriptiveTitle = await generateChatTitle(content, mode);
         await storage.updateChatTitle(chatId, descriptiveTitle);
       }
 
-      res.json({ userMessage, aiMessage });
+      // Get updated credits to return to client
+      const updatedCredits = await storage.getUserCredits(userId);
+
+      res.json({ 
+        userMessage, 
+        aiMessage,
+        creditsRemaining: updatedCredits ? updatedCredits.totalCredits - updatedCredits.usedCredits : 0
+      });
     } catch (error) {
       console.error("Error sending message:", error);
       res.status(500).json({ message: "Failed to send message" });
