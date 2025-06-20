@@ -1,7 +1,6 @@
 // Vercel serverless function entry point
 import express from "express";
 import cors from "cors";
-import { setupVite, serveStatic } from "../server/vite";
 import { registerRoutes } from "../server/routes";
 import { setupAuth } from "../server/replitAuth";
 
@@ -16,12 +15,12 @@ app.use(cors({
 }));
 
 app.use(express.json());
-app.use(express.static("public"));
+app.use(express.urlencoded({ extended: false }));
 
 // Setup authentication
 await setupAuth(app);
 
-// Setup routes
-await registerRoutes(app);
+// Setup routes without vite middleware
+const server = await registerRoutes(app);
 
 export default app;

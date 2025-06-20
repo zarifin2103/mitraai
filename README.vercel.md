@@ -61,9 +61,9 @@ OPENROUTER_API_KEY=your-openrouter-api-key
 ├── api/              # Vercel serverless functions
 │   └── index.ts      # Main API entry point
 ├── client/           # React frontend
+│   └── dist/         # Built frontend (auto-generated)
 ├── server/           # Express backend code
 ├── shared/           # Shared types and schemas
-├── dist/             # Built frontend (auto-generated)
 ├── vercel.json       # Vercel configuration
 └── package.json      # Dependencies and scripts
 ```

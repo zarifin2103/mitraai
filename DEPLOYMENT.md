@@ -13,9 +13,11 @@ Add these environment variables in your Vercel dashboard:
 ```bash
 DATABASE_URL=postgresql://mitraai_owner:npg_sg0DNjWy8XJf@ep-odd-credit-a14feb62-pooler.ap-southeast-1.aws.neon.tech/mitraai?sslmode=require
 NODE_ENV=production
-SESSION_SECRET=your-session-secret-key
+SESSION_SECRET=your-session-secret-key-here-make-it-long-and-random
 OPENROUTER_API_KEY=your-openrouter-api-key
 ```
+
+**Important**: Replace `your-session-secret-key-here-make-it-long-and-random` with a secure random string for production use.
 
 ## Deployment Steps
 
@@ -30,10 +32,10 @@ OPENROUTER_API_KEY=your-openrouter-api-key
 
 Vercel will automatically detect the settings from `vercel.json`:
 
-- **Framework Preset**: None (custom configuration)
-- **Build Command**: `npm run vercel-build`
-- **Output Directory**: `dist`
-- **Install Command**: `npm install`
+- **Framework Preset**: Vite (configured in vercel.json)
+- **Build Command**: `cd client && vite build` (configured in vercel.json)
+- **Output Directory**: `client/dist` (configured in vercel.json)
+- **Install Command**: `npm install` (configured in vercel.json)
 
 ### 3. Environment Variables
 
@@ -73,10 +75,28 @@ Click "Deploy" and Vercel will:
 
 ## Troubleshooting
 
-- **Build Errors**: Check build logs in Vercel dashboard
-- **Database Connection**: Verify DATABASE_URL environment variable
-- **API Routes**: Ensure routes start with `/api/`
-- **Static Files**: Check if files are in `/dist` directory
+### Common Issues and Solutions
+
+1. **404 Error on Main Page**
+   - Ensure `vercel.json` has correct rewrites configuration
+   - Check that `client/dist/index.html` exists after build
+   - Verify build output directory is set to `client/dist`
+   - Confirm framework is set to "vite" in vercel.json
+
+2. **API Routes Not Working**
+   - Confirm API routes start with `/api/`
+   - Check environment variables are set in Vercel dashboard
+   - Verify database connection string is correct
+
+3. **Build Errors**
+   - Check build logs in Vercel dashboard
+   - Ensure all dependencies are in `package.json`
+   - Verify TypeScript compilation succeeds
+
+4. **Database Connection Issues**
+   - Verify `DATABASE_URL` environment variable
+   - Check Neon database is accessible from external connections
+   - Ensure SSL mode is enabled in connection string
 
 ## Architecture on Vercel
 
