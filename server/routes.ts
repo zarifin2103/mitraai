@@ -65,7 +65,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/chats/:chatId/messages', isAuthenticated, async (req: any, res) => {
     try {
       const chatId = parseInt(req.params.chatId);
-      const { content, mode } = req.body;
+      const { content, mode, modelId } = req.body;
       
       // Add user message
       const userMessage = await storage.addMessage({

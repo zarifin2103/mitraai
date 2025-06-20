@@ -4,6 +4,7 @@ import {
   messages,
   documents,
   adminSettings,
+  llmModels,
   type User,
   type UpsertUser,
   type Chat,
@@ -14,6 +15,8 @@ import {
   type InsertDocument,
   type AdminSetting,
   type InsertAdminSetting,
+  type LlmModel,
+  type InsertLlmModel,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -47,6 +50,13 @@ export interface IStorage {
   getAdminSetting(key: string): Promise<AdminSetting | undefined>;
   setAdminSetting(setting: InsertAdminSetting): Promise<AdminSetting>;
   getAllAdminSettings(): Promise<AdminSetting[]>;
+  
+  // LLM Model operations
+  getAllLlmModels(): Promise<LlmModel[]>;
+  getActiveLlmModels(): Promise<LlmModel[]>;
+  createLlmModel(model: InsertLlmModel): Promise<LlmModel>;
+  updateLlmModel(modelId: string, updates: Partial<LlmModel>): Promise<LlmModel>;
+  deleteLlmModel(modelId: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -196,6 +206,40 @@ export class DatabaseStorage implements IStorage {
 
   async getAllAdminSettings(): Promise<AdminSetting[]> {
     return await db.select().from(adminSettings);
+  }
+
+  // LLM Model operations
+  async getAllLlmModels(): Promise<LlmModel[]> {
+    return await db.select().from(llmModels).orderBy(llmModels.displayName);
+  }
+
+  async getActiveLlmModels(): Promise<LlmModel[]> {
+    return await db
+      .select()
+      .from(llmModels)
+      .where(eq(llmModels.isActive, true))
+      .orderBy(llmModels.displayName);
+  }
+
+  async createLlmModel(model: InsertLlmModel): Promise<LlmModel> {
+    const [newModel] = await db
+      .insert(llmModels)
+      .values(model)
+      .returning();
+    return newModel;
+  }
+
+  async updateLlmModel(modelId: string, updates: Partial<LlmModel>): Promise<LlmModel> {
+    const [updatedModel] = await db
+      .update(llmModels)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(llmModels.modelId, modelId))
+      .returning();
+    return updatedModel;
+  }
+
+  async deleteLlmModel(modelId: string): Promise<void> {
+    await db.delete(llmModels).where(eq(llmModels.modelId, modelId));
   }
 }
 

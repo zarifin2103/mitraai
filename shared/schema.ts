@@ -84,6 +84,19 @@ export const adminSettings = pgTable("admin_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// LLM Models configuration
+export const llmModels = pgTable("llm_models", {
+  id: serial("id").primaryKey(),
+  modelId: varchar("model_id").notNull().unique(),
+  displayName: varchar("display_name").notNull(),
+  provider: varchar("provider").notNull(),
+  costPerMessage: integer("cost_per_message").default(0), // in credits
+  isActive: boolean("is_active").default(true),
+  isFree: boolean("is_free").default(true),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   chats: many(chats),
@@ -144,6 +157,12 @@ export const insertAdminSettingSchema = createInsertSchema(adminSettings).omit({
   updatedAt: true,
 });
 
+export const insertLlmModelSchema = createInsertSchema(llmModels).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type UpsertUser = typeof users.$inferInsert;
 export type User = typeof users.$inferSelect;
@@ -155,3 +174,5 @@ export type Document = typeof documents.$inferSelect;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type AdminSetting = typeof adminSettings.$inferSelect;
 export type InsertAdminSetting = z.infer<typeof insertAdminSettingSchema>;
+export type LlmModel = typeof llmModels.$inferSelect;
+export type InsertLlmModel = z.infer<typeof insertLlmModelSchema>;

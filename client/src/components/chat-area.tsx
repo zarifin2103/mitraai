@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Send, Bot, User, FileText, Copy, Check, Download, PenTool } from "lucide-react";
 import WritingAssistant from "./writing-assistant";
+import ModelSelector from "./model-selector";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
@@ -30,6 +31,7 @@ export default function ChatArea({
   const [isTyping, setIsTyping] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
   const [isWritingAssistantOpen, setIsWritingAssistantOpen] = useState(false);
+  const [selectedModel, setSelectedModel] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
