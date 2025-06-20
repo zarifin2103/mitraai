@@ -320,13 +320,10 @@ function UsersTab() {
       const packageId = formData.get('packageId')?.toString();
       const duration = parseInt(formData.get('duration')?.toString() || '30');
       
-      await apiRequest('/api/admin/assign-package', {
-        method: 'POST',
-        body: JSON.stringify({
-          userId: assigningUser.id,
-          packageId: parseInt(packageId || '0'),
-          duration
-        }),
+      await apiRequest('POST', '/api/admin/assign-package', {
+        userId: assigningUser.id,
+        packageId: parseInt(packageId || '0'),
+        duration
       });
 
       toast({ title: "Package assigned successfully" });
@@ -349,10 +346,7 @@ function UsersTab() {
         isAdmin: formData.get('isAdmin') === 'on',
       };
 
-      await apiRequest('/api/admin/users', {
-        method: 'POST',
-        body: JSON.stringify(userData),
-      });
+      await apiRequest('POST', '/api/admin/users', userData);
 
       toast({ title: "User created successfully" });
       setIsCreateDialogOpen(false);
@@ -374,10 +368,7 @@ function UsersTab() {
         isAdmin: formData.get('isAdmin') === 'on',
       };
 
-      await apiRequest(`/api/admin/users/${editingUser.id}`, {
-        method: 'PUT',
-        body: JSON.stringify(updates),
-      });
+      await apiRequest('PUT', `/api/admin/users/${editingUser.id}`, updates);
 
       toast({ title: "User updated successfully" });
       setIsEditDialogOpen(false);
@@ -585,18 +576,15 @@ function PackagesTab() {
     try {
       const features = formData.get('features')?.toString().split('\n').filter(f => f.trim()) || [];
       
-      await apiRequest('/api/admin/packages', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: formData.get('name'),
-          description: formData.get('description') || '',
-          price: parseInt(formData.get('price')?.toString() || '0'),
-          credits: parseInt(formData.get('credits')?.toString() || '0'),
-          duration: parseInt(formData.get('duration')?.toString() || '30'),
-          features,
-          isActive: true, // Default to active
-          isPopular: false, // Default to not popular
-        }),
+      await apiRequest('POST', '/api/admin/packages', {
+        name: formData.get('name'),
+        description: formData.get('description') || '',
+        price: parseInt(formData.get('price')?.toString() || '0'),
+        credits: parseInt(formData.get('credits')?.toString() || '0'),
+        duration: parseInt(formData.get('duration')?.toString() || '30'),
+        features,
+        isActive: true,
+        isPopular: false,
       });
       
       refetchPackages();
@@ -766,16 +754,13 @@ function ApiKeysTab() {
 
     setIsLoading(true);
     try {
-      await apiRequest('/api/admin/settings', {
-        method: 'POST',
-        body: JSON.stringify({
-          category: 'api_keys',
-          key: 'openrouter_api_key',
-          value: openRouterKey,
-          dataType: 'string',
-          description: 'OpenRouter API Key for AI models',
-          isPublic: false,
-        }),
+      await apiRequest('POST', '/api/admin/settings', {
+        category: 'api_keys',
+        key: 'openrouter_api_key',
+        value: openRouterKey,
+        dataType: 'string',
+        description: 'OpenRouter API Key for AI models',
+        isPublic: false,
       });
       
       toast({ title: "API key saved successfully" });
