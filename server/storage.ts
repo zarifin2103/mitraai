@@ -144,19 +144,21 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  private db = db;
+
   // User operations for custom authentication
   async getUser(id: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+    const [user] = await this.db.select().from(users).where(eq(users.id, id));
     return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+    const [user] = await this.db.select().from(users).where(eq(users.username, username));
     return user;
   }
 
   async createUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
+    const [user] = await this.db
       .insert(users)
       .values(userData)
       .returning();
@@ -164,7 +166,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async upsertUser(userData: UpsertUser): Promise<User> {
-    const [user] = await db
+    const [user] = await this.db
       .insert(users)
       .values(userData)
       .onConflictDoUpdate({
@@ -203,7 +205,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteChat(chatId: number): Promise<void> {
-    await db.delete(chats).where(eq(chats.id, chatId));
+    await this.db.delete(chats).where(eq(chats.id, chatId));
   }
 
   // Message operations
@@ -261,7 +263,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteDocument(id: number): Promise<void> {
-    await db.delete(documents).where(eq(documents.id, id));
+    await this.db.delete(documents).where(eq(documents.id, id));
   }
 
   // Admin operations
@@ -289,12 +291,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllAdminSettings(): Promise<AdminSetting[]> {
-    return await db.select().from(adminSettings);
+    return await this.db.select().from(adminSettings);
   }
 
   // LLM Model operations
   async getAllLlmModels(): Promise<LlmModel[]> {
-    return await db.select().from(llmModels).orderBy(llmModels.displayName);
+    return await this.db.select().from(llmModels).orderBy(llmModels.displayName);
   }
 
   async getActiveLlmModels(): Promise<LlmModel[]> {
@@ -333,7 +335,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteLlmModel(modelId: string): Promise<void> {
-    await db.delete(llmModels).where(eq(llmModels.modelId, modelId));
+    await this.db.delete(llmModels).where(eq(llmModels.modelId, modelId));
   }
 
   async getLlmModel(modelId: string): Promise<LlmModel | undefined> {
@@ -346,7 +348,7 @@ export class DatabaseStorage implements IStorage {
 
   // User credits operations
   async getUserCredits(userId: string): Promise<UserCredits | undefined> {
-    const [credits] = await db.select().from(userCredits).where(eq(userCredits.userId, userId));
+    const [credits] = await this.db.select().from(userCredits).where(eq(userCredits.userId, userId));
     return credits;
   }
 
@@ -399,7 +401,7 @@ export class DatabaseStorage implements IStorage {
 
   // Admin operations
   async getAllUsers(): Promise<User[]> {
-    return await db.select().from(users).orderBy(desc(users.createdAt));
+    return await this.db.select().from(users).orderBy(desc(users.createdAt));
   }
 
   async updateUser(userId: string, updates: Partial<User>): Promise<User> {
@@ -412,7 +414,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteUser(userId: string): Promise<void> {
-    await db.delete(users).where(eq(users.id, userId));
+    await this.db.delete(users).where(eq(users.id, userId));
   }
 
   // Subscription package operations
@@ -540,7 +542,7 @@ export class DatabaseStorage implements IStorage {
       return updatedSetting;
     } else {
       // Insert new setting
-      const [newSetting] = await db.insert(systemSettings).values(setting).returning();
+      const [newSetting] = await this.db.insert(systemSettings).values(setting).returning();
       return newSetting;
     }
   }
@@ -560,20 +562,20 @@ export class DatabaseStorage implements IStorage {
 
   // Research operations (existing methods from interface)
   async getChatResearchSources(chatId: number): Promise<ResearchSource[]> {
-    return await db.select().from(researchSources).where(eq(researchSources.chatId, chatId)).orderBy(desc(researchSources.createdAt));
+    return await this.db.select().from(researchSources).where(eq(researchSources.chatId, chatId)).orderBy(desc(researchSources.createdAt));
   }
 
   async addResearchSource(source: InsertResearchSource): Promise<ResearchSource> {
-    const [newSource] = await db.insert(researchSources).values(source).returning();
+    const [newSource] = await this.db.insert(researchSources).values(source).returning();
     return newSource;
   }
 
   async getChatResearchQuestions(chatId: number): Promise<ResearchQuestion[]> {
-    return await db.select().from(researchQuestions).where(eq(researchQuestions.chatId, chatId)).orderBy(researchQuestions.priority);
+    return await this.db.select().from(researchQuestions).where(eq(researchQuestions.chatId, chatId)).orderBy(researchQuestions.priority);
   }
 
   async addResearchQuestion(question: InsertResearchQuestion): Promise<ResearchQuestion> {
-    const [newQuestion] = await db.insert(researchQuestions).values(question).returning();
+    const [newQuestion] = await this.db.insert(researchQuestions).values(question).returning();
     return newQuestion;
   }
 
@@ -587,11 +589,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getChatResearchKeywords(chatId: number): Promise<ResearchKeyword[]> {
-    return await db.select().from(researchKeywords).where(eq(researchKeywords.chatId, chatId)).orderBy(desc(researchKeywords.frequency));
+    return await this.db.select().from(researchKeywords).where(eq(researchKeywords.chatId, chatId)).orderBy(desc(researchKeywords.frequency));
   }
 
   async addResearchKeyword(keyword: InsertResearchKeyword): Promise<ResearchKeyword> {
-    const [newKeyword] = await db.insert(researchKeywords).values(keyword).returning();
+    const [newKeyword] = await this.db.insert(researchKeywords).values(keyword).returning();
     return newKeyword;
   }
 
@@ -603,7 +605,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllChatsForTitleUpdate(): Promise<Chat[]> {
-    return await db.select().from(chats).where(eq(chats.title, "New Chat")).orderBy(desc(chats.createdAt));
+    return await this.db.select().from(chats).where(eq(chats.title, "New Chat")).orderBy(desc(chats.createdAt));
   }
 }
 
