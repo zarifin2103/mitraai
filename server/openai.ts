@@ -1,4 +1,10 @@
 import OpenAI from "openai";
+import { 
+  enhanceWithIndonesianAcademicContext, 
+  generateIndonesianResearchQuestions,
+  generateIndonesianKeywords,
+  INDONESIAN_ACADEMIC_CONTEXT_ENHANCER 
+} from "./indonesian-academic-prompts";
 import { storage } from "./storage";
 
 // Using free model that supports basic features
