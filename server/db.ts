@@ -5,8 +5,8 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-// Use external Neon DB - override any environment variable
-const EXTERNAL_DATABASE_URL = "postgresql://mitraai_owner:npg_sg0DNjWy8XJf@ep-odd-credit-a14feb62-pooler.ap-southeast-1.aws.neon.tech/mitraai?sslmode=require";
+// Use external Neon DB - from environment variable or fallback
+const EXTERNAL_DATABASE_URL = process.env.DATABASE_URL || "postgresql://mitraai_owner:npg_sg0DNjWy8XJf@ep-odd-credit-a14feb62-pooler.ap-southeast-1.aws.neon.tech/mitraai?sslmode=require";
 
 if (!EXTERNAL_DATABASE_URL) {
   throw new Error("External DATABASE_URL must be configured");
