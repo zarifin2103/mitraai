@@ -211,7 +211,8 @@ export default function ChatArea({
                   }`}
                 >
                   <div className="prose prose-sm max-w-none">
-                    {formatMessage(msg.content || "")}
+                    {msg.content && formatMessage(msg.content)}
+                    {!msg.content && <span className="text-gray-500 italic">No content</span>}
                   </div>
                 </div>
                 
