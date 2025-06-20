@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Bot, User, FileText, Copy, Check, Download } from "lucide-react";
+import { Send, Bot, User, FileText, Copy, Check, Download, PenTool } from "lucide-react";
+import WritingAssistant from "./writing-assistant";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
@@ -28,6 +29,7 @@ export default function ChatArea({
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<number | null>(null);
+  const [isWritingAssistantOpen, setIsWritingAssistantOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -409,9 +411,9 @@ export default function ChatArea({
       </div>
 
       <div className="border-t border-gray-200 p-4">
-        {/* Tombol ekspor untuk mode create */}
+        {/* Tombol ekspor dan writing assistant untuk mode create */}
         {mode === "create" && messages.some(msg => msg.role === "assistant") && (
-          <div className="mb-4 flex justify-center">
+          <div className="mb-4 flex justify-center gap-3">
             <Button
               onClick={generateDocxFromChat}
               variant="outline"
@@ -419,6 +421,14 @@ export default function ChatArea({
             >
               <Download className="h-4 w-4" />
               Ekspor ke DOCX
+            </Button>
+            <Button
+              onClick={() => setIsWritingAssistantOpen(true)}
+              variant="outline"
+              className="gap-2"
+            >
+              <PenTool className="h-4 w-4" />
+              Writing Assistant
             </Button>
           </div>
         )}
@@ -458,6 +468,12 @@ export default function ChatArea({
           Tekan Enter untuk mengirim, Shift+Enter untuk baris baru
         </div>
       </div>
+
+      {/* Writing Assistant Modal */}
+      <WritingAssistant 
+        isOpen={isWritingAssistantOpen}
+        onClose={() => setIsWritingAssistantOpen(false)}
+      />
     </div>
   );
 }

@@ -270,3 +270,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+
+// Helper function to analyze text with AI
+async function analyzeTextWithAI(text: string) {
+  const { generateAIResponse } = await import('./openai');
+  
+  // Calculate basic statistics
+  const words = text.trim().split(/\s+/);
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
+  const paragraphs = text.split(/\n\s*\n/).filter(p => p.trim().length > 0);
+  
+  const statistics = {
+    wordCount: words.length,
+    sentenceCount: sentences.length,
+    paragraphCount: paragraphs.length,
+    avgWordsPerSentence: words.length / sentences.length,
+    complexWords: words.filter(word => word.length > 6).length,
+    passiveVoiceCount: (text.match(/\b(adalah|telah|sedang|akan)\s+\w+/g) || []).length,
+  };
+
+  // Generate AI analysis
+  const prompt = `Analisis teks akademik berikut dan berikan penilaian dalam format JSON:
+
+TEKS:
+${text}
+
+Berikan response dalam format JSON dengan struktur:
+{
+  "readabilityScore": (skor 0-100 untuk keterbacaan),
+  "academicTone": (skor 0-100 untuk tone akademik),
+  "clarity": (skor 0-100 untuk kejelasan),
+  "suggestions": [
+    {
+      "type": "grammar|style|academic|clarity|structure",
+      "severity": "low|medium|high", 
+      "message": "deskripsi masalah",
+      "suggestion": "saran perbaikan"
+    }
+  ]
+}
+
+Fokus pada:
+- Penggunaan bahasa akademik Indonesia yang formal
+- Struktur kalimat yang jelas
+- Kohesi dan koherensi paragraf
+- Penggunaan istilah teknis yang tepat
+- Gaya penulisan yang objektif`;
+
+  try {
+    const aiResponse = await generateAIResponse([
+      { role: "user", content: prompt }
+    ], "create");
+
+    // Parse AI response
+    const jsonMatch = aiResponse.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      const analysisData = JSON.parse(jsonMatch[0]);
+      return {
+        ...analysisData,
+        statistics
+      };
+    }
+  } catch (error) {
+    console.error("AI analysis failed:", error);
+  }
+
+  // Fallback analysis
+  return {
+    readabilityScore: Math.max(20, Math.min(90, 100 - (statistics.avgWordsPerSentence * 2))),
+    academicTone: words.filter(w => w.length > 8).length > words.length * 0.1 ? 75 : 60,
+    clarity: statistics.avgWordsPerSentence < 20 ? 80 : 60,
+    suggestions: [
+      {
+        type: "style",
+        severity: "medium",
+        message: "Pertimbangkan untuk menggunakan lebih banyak istilah akademik",
+        suggestion: "Gunakan vocabulary yang lebih formal dan spesifik untuk meningkatkan tone akademik"
+      }
+    ],
+    statistics
+  };
+}
