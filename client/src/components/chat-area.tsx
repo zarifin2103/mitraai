@@ -247,7 +247,7 @@ export default function ChatArea({
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                  <div className="text-sm leading-relaxed">
                     {formatMessage(msg.content)}
                   </div>
                 </div>

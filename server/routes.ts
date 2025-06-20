@@ -36,13 +36,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/chats', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const validatedData = insertChatSchema.parse({
-        ...req.body,
+      const { mode = "riset", title = "Percakapan Baru" } = req.body;
+      
+      const chat = await storage.createChat({
         userId,
+        title,
+        mode,
       });
       
-      const chat = await storage.createChat(validatedData);
-      res.json(chat);
+      res.status(201).json(chat);
     } catch (error) {
       console.error("Error creating chat:", error);
       res.status(500).json({ message: "Failed to create chat" });
