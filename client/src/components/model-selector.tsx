@@ -92,13 +92,13 @@ export default function ModelSelector({ selectedModel, onModelChange, disabled }
   return (
     <div className="w-full max-w-md">
       <Select value={selectedModel} onValueChange={onModelChange} disabled={disabled}>
-        <SelectTrigger className="w-full">
+        <SelectTrigger className="w-full bg-white border-gray-300 text-gray-900">
           <SelectValue placeholder="Pilih Model AI">
             {selectedModelData && (
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm">{getProviderIcon(selectedModelData.provider)}</span>
-                  <span className="font-medium">{cleanModelName(selectedModelData.displayName)}</span>
+                  <span className="font-medium text-gray-900">{cleanModelName(selectedModelData.displayName)}</span>
                 </div>
                 <Badge 
                   variant="secondary" 
@@ -110,15 +110,15 @@ export default function ModelSelector({ selectedModel, onModelChange, disabled }
             )}
           </SelectValue>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-white border-gray-200">
           {models.map((model) => (
-            <SelectItem key={model.modelId} value={model.modelId} className="py-3">
+            <SelectItem key={model.modelId} value={model.modelId} className="py-3 hover:bg-gray-50 focus:bg-gray-50">
               <div className="flex items-center justify-between w-full">
                 <div className="flex items-center space-x-2">
                   <span className="text-sm">{getProviderIcon(model.provider)}</span>
                   <div className="flex flex-col">
-                    <span className="font-medium text-sm">{cleanModelName(model.displayName)}</span>
-                    <span className="text-xs text-muted-foreground">{model.provider}</span>
+                    <span className="font-medium text-sm text-gray-900">{cleanModelName(model.displayName)}</span>
+                    <span className="text-xs text-gray-500">{model.provider}</span>
                   </div>
                 </div>
                 <Badge 

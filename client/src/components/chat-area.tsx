@@ -287,7 +287,7 @@ export default function ChatArea({
         {messages.length === 0 && !isLoadingMessages && (
           <div className="space-y-6">
             {/* Model Selector */}
-            <div className="bg-white border border-border rounded-lg p-6 shadow-sm">
+            <div className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
               <h3 className="text-lg font-semibold mb-4 text-gray-900">Pilih Model AI</h3>
               <ModelSelector 
                 selectedModel={selectedModel}
