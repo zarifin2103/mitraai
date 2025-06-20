@@ -208,12 +208,48 @@ function UsersTab({ users, isLoading }: { users: User[], isLoading: boolean }) {
   const { toast } = useToast();
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [assigningUser, setAssigningUser] = useState<User | null>(null);
+  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  
+  const { data: packages = [] } = useQuery<SubscriptionPackage[]>({
+    queryKey: ['/api/admin/packages'],
+  });
 
   if (isLoading) return <div>Loading users...</div>;
 
   const handleEditUser = (user: User) => {
     setEditingUser(user);
     setIsEditDialogOpen(true);
+  };
+
+  const handleAssignPackage = (user: User) => {
+    setAssigningUser(user);
+    setIsAssignDialogOpen(true);
+  };
+
+  const handleAssignUserPackage = async (formData: FormData) => {
+    if (!assigningUser) return;
+
+    try {
+      const packageId = formData.get('packageId')?.toString();
+      const duration = parseInt(formData.get('duration')?.toString() || '30');
+      
+      await apiRequest('/api/admin/assign-package', {
+        method: 'POST',
+        body: JSON.stringify({
+          userId: assigningUser.id,
+          packageId: parseInt(packageId || '0'),
+          duration
+        }),
+      });
+
+      toast({ title: "Package assigned successfully" });
+      setIsAssignDialogOpen(false);
+      setAssigningUser(null);
+      window.location.reload();
+    } catch (error) {
+      toast({ title: "Failed to assign package", variant: "destructive" });
+    }
   };
 
   const handleSaveUser = async (formData: FormData) => {
@@ -264,14 +300,24 @@ function UsersTab({ users, isLoading }: { users: User[], isLoading: boolean }) {
                     <span>Subscription: {user.subscription ? user.subscription.status : 'None'}</span>
                   </div>
                 </div>
-                <Button 
-                  variant="outline" 
-                  className="border-blue-600 text-blue-600 hover:bg-blue-50" 
-                  size="sm"
-                  onClick={() => handleEditUser(user)}
-                >
-                  Edit
-                </Button>
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    className="border-green-600 text-green-600 hover:bg-green-50" 
+                    size="sm"
+                    onClick={() => handleAssignPackage(user)}
+                  >
+                    Package
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    className="border-blue-600 text-blue-600 hover:bg-blue-50" 
+                    size="sm"
+                    onClick={() => handleEditUser(user)}
+                  >
+                    Edit
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -327,6 +373,44 @@ function UsersTab({ users, isLoading }: { users: User[], isLoading: boolean }) {
               <Label htmlFor="isAdmin">Administrator</Label>
             </div>
             <Button type="submit" className="w-full">Save Changes</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isAssignDialogOpen} onOpenChange={setIsAssignDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Assign Package to {assigningUser?.username}</DialogTitle>
+          </DialogHeader>
+          <form action={handleAssignUserPackage} className="space-y-4">
+            <div>
+              <Label htmlFor="packageId">Select Package</Label>
+              <select
+                id="packageId"
+                name="packageId"
+                className="w-full p-2 border rounded-md"
+                required
+              >
+                <option value="">Choose a package...</option>
+                {packages.filter(p => p.isActive).map((pkg) => (
+                  <option key={pkg.id} value={pkg.id}>
+                    {pkg.name} - {pkg.credits.toLocaleString()} credits - {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR' }).format(pkg.price / 100)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <Label htmlFor="duration">Duration (days)</Label>
+              <Input 
+                id="duration" 
+                name="duration" 
+                type="number"
+                defaultValue="30"
+                min="1"
+                required 
+              />
+            </div>
+            <Button type="submit" className="w-full">Assign Package</Button>
           </form>
         </DialogContent>
       </Dialog>
@@ -565,8 +649,8 @@ function ApiKeysTab() {
           <div className="text-xs text-muted-foreground mt-2 space-y-1">
             <p>This key will be used for AI model requests</p>
             <div className="bg-blue-50 p-2 rounded border">
-              <p className="font-semibold text-blue-800">Best Practice:</p>
-              <p className="text-blue-700">Environment variables (.env) are more secure for production. Database storage is better for admin-configurable keys that change frequently.</p>
+              <p className="font-semibold text-blue-800">Security Policy:</p>
+              <p className="text-blue-700">All application secrets are now stored securely in the database instead of environment variables for better admin control and security.</p>
             </div>
           </div>
         </div>

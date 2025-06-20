@@ -182,6 +182,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User credits endpoint
+  app.get('/api/user/credits', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      let credits = await storage.getUserCredits(userId);
+      
+      if (!credits) {
+        credits = await storage.createUserCredits({
+          userId,
+          totalCredits: 100,
+          usedCredits: 0,
+        });
+      }
+      
+      res.json(credits);
+    } catch (error) {
+      console.error("Error fetching user credits:", error);
+      res.status(500).json({ message: "Failed to fetch credits" });
+    }
+  });
+
   // Chat routes (with user isolation)
   app.get('/api/chats', isAuthenticated, async (req: any, res) => {
     try {
@@ -537,6 +558,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });
+    }
+  });
+
+  // Assign package to user
+  app.post('/api/admin/assign-package', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { userId, packageId, duration } = req.body;
+      
+      // Get package details
+      const package_ = await storage.getSubscriptionPackage(packageId);
+      if (!package_) {
+        return res.status(404).json({ message: "Package not found" });
+      }
+
+      // Calculate end date
+      const startDate = new Date();
+      const endDate = new Date();
+      endDate.setDate(startDate.getDate() + duration);
+
+      // Create or update user subscription
+      const subscription = await storage.createUserSubscription({
+        userId,
+        packageId,
+        status: "active",
+        startDate,
+        endDate,
+        autoRenew: false,
+      });
+
+      // Update or create user credits
+      const existingCredits = await storage.getUserCredits(userId);
+      if (existingCredits) {
+        await storage.updateUserCredits(userId, {
+          totalCredits: existingCredits.totalCredits + package_.credits,
+        });
+      } else {
+        await storage.createUserCredits({
+          userId,
+          totalCredits: package_.credits,
+          usedCredits: 0,
+        });
+      }
+
+      res.json({ 
+        message: "Package assigned successfully",
+        subscription,
+        creditsAdded: package_.credits
+      });
+    } catch (error) {
+      console.error("Error assigning package:", error);
+      res.status(500).json({ message: "Failed to assign package" });
     }
   });
 

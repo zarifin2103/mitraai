@@ -11,12 +11,7 @@ import { storage } from "./storage";
 const DEFAULT_MODEL = "meta-llama/llama-3.2-3b-instruct:free";
 
 async function getOpenRouterKey(): Promise<string> {
-  // Priority 1: Environment variable (most secure, recommended for production)
-  if (process.env.OPENROUTER_API_KEY) {
-    return process.env.OPENROUTER_API_KEY;
-  }
-  
-  // Priority 2: Database setting (for admin-configurable keys)
+  // Priority 1: Database setting (secure and admin-configurable)
   try {
     const setting = await storage.getSystemSetting("api_keys", "openrouter_api_key");
     if (setting?.value && setting.value !== "configured" && setting.value.trim()) {
@@ -26,7 +21,7 @@ async function getOpenRouterKey(): Promise<string> {
     console.error("Error getting system setting for OpenRouter key:", error);
   }
   
-  // Priority 3: Admin settings as fallback
+  // Priority 2: Admin settings as fallback
   try {
     const setting = await storage.getAdminSetting("openrouter_key");
     if (setting?.value && setting.value !== "configured" && setting.value.trim()) {
@@ -36,7 +31,12 @@ async function getOpenRouterKey(): Promise<string> {
     console.error("Admin settings not available:", error);
   }
   
-  throw new Error("OpenRouter API key not configured. Please contact administrator.");
+  // Priority 3: Environment variable as last resort
+  if (process.env.OPENROUTER_API_KEY) {
+    return process.env.OPENROUTER_API_KEY;
+  }
+  
+  throw new Error("OpenRouter API key not configured in database. Please set it in Admin > API Keys.");
 }
 
 async function getOpenRouterClient(): Promise<OpenAI> {

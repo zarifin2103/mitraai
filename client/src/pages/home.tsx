@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { useToast } from "@/hooks/use-toast";
 import ChatSidebar from "@/components/chat-sidebar";
@@ -8,7 +9,7 @@ import DocumentPreview from "@/components/document-preview";
 import AdminModal from "@/components/admin-modal";
 import DocumentModal from "@/components/document-modal";
 import { Button } from "@/components/ui/button";
-import { Settings, Menu, EyeOff, Shield } from "lucide-react";
+import { Settings, Menu, EyeOff, Shield, Coins } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Home() {
@@ -141,16 +142,8 @@ export default function Home() {
                 </Link>
               )}
 
-              {/* Admin Settings (Super Admin Only) */}
-              {user?.isAdmin && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setAdminModalOpen(true)}
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              )}
+              {/* User Credits Display */}
+              <UserCreditsDisplay />
               
               {/* Logout */}
               <Button
@@ -224,6 +217,37 @@ export default function Home() {
           setDocumentModalOpen(false);
         }}
       />
+    </div>
+  );
+}
+
+function UserCreditsDisplay() {
+  const { user } = useAuth();
+  const { data: credits } = useQuery({
+    queryKey: ['/api/user/credits'],
+    enabled: !!user,
+  });
+
+  if (!user || !credits) return null;
+
+  const remaining = credits.totalCredits - credits.usedCredits;
+  const percentage = (remaining / credits.totalCredits) * 100;
+
+  return (
+    <div className="flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full border border-blue-200">
+      <Coins className="h-4 w-4 text-blue-600" />
+      <span className="text-sm font-medium text-blue-800">
+        {remaining.toLocaleString()}
+      </span>
+      <div className="w-12 h-2 bg-blue-200 rounded-full overflow-hidden">
+        <div 
+          className={`h-full transition-all duration-300 ${
+            percentage > 50 ? 'bg-blue-600' : 
+            percentage > 20 ? 'bg-yellow-500' : 'bg-red-500'
+          }`}
+          style={{ width: `${Math.max(percentage, 0)}%` }}
+        />
+      </div>
     </div>
   );
 }
