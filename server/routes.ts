@@ -110,6 +110,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/documents', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { title, content, type, chatId } = req.body;
+      
+      const document = await storage.createDocument({
+        userId,
+        title,
+        content,
+        type: type || "generated",
+        chatId: chatId || null,
+      });
+      
+      res.status(201).json(document);
+    } catch (error) {
+      console.error("Error creating document:", error);
+      res.status(500).json({ message: "Failed to create document" });
+    }
+  });
+
   app.get('/api/documents/:id', isAuthenticated, async (req: any, res) => {
     try {
       const documentId = parseInt(req.params.id);
@@ -123,6 +143,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching document:", error);
       res.status(500).json({ message: "Failed to fetch document" });
+    }
+  });
+
+  app.get('/api/documents/:id/download', isAuthenticated, async (req: any, res) => {
+    try {
+      const documentId = parseInt(req.params.id);
+      const document = await storage.getDocument(documentId);
+      
+      if (!document) {
+        return res.status(404).json({ message: "Document not found" });
+      }
+      
+      // Set headers untuk download
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${document.title}.txt"`);
+      res.send(document.content);
+      
+    } catch (error) {
+      console.error("Error downloading document:", error);
+      res.status(500).json({ message: "Failed to download document" });
     }
   });
 

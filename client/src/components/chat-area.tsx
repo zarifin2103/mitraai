@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Bot, User, FileText, Copy, Check } from "lucide-react";
+import { Send, Bot, User, FileText, Copy, Check, Download } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { Document, Packer, Paragraph, TextRun, HeadingLevel } from "docx";
+import { saveAs } from "file-saver";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Message } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -125,6 +127,108 @@ export default function ChatArea({
       toast({
         title: "Gagal menyalin",
         description: "Tidak dapat menyalin teks ke clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const generateDocxFromChat = async () => {
+    try {
+      // Ambil semua pesan AI dari chat
+      const aiMessages = messages.filter(msg => msg.role === "assistant");
+      
+      if (aiMessages.length === 0) {
+        toast({
+          title: "Tidak ada konten",
+          description: "Belum ada respons AI untuk diekspor",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Buat dokumen DOCX
+      const children = [];
+      
+      // Tambah judul dokumen
+      children.push(
+        new Paragraph({
+          text: `Dokumen Akademik - ${new Date().toLocaleDateString('id-ID')}`,
+          heading: HeadingLevel.TITLE,
+        })
+      );
+
+      // Tambah konten dari setiap pesan AI
+      aiMessages.forEach((msg, index) => {
+        // Pisahkan konten berdasarkan paragraf
+        const paragraphs = msg.content.split('\n\n');
+        
+        paragraphs.forEach((paragraph) => {
+          if (paragraph.trim()) {
+            // Handle markdown formatting sederhana
+            const text = paragraph
+              .replace(/\*\*(.*?)\*\*/g, '$1') // Bold
+              .replace(/\*(.*?)\*/g, '$1') // Italic
+              .replace(/^#+\s(.+)/gm, '$1') // Headers
+              .replace(/^[\-\*]\s(.+)/gm, '• $1') // Bullet points
+              .replace(/^\d+\.\s(.+)/gm, '$1'); // Numbered lists
+
+            children.push(
+              new Paragraph({
+                children: [
+                  new TextRun({
+                    text: text,
+                    size: 24, // 12pt font
+                  }),
+                ],
+                spacing: {
+                  after: 200,
+                },
+              })
+            );
+          }
+        });
+      });
+
+      // Buat dokumen
+      const doc = new Document({
+        sections: [
+          {
+            properties: {},
+            children: children,
+          },
+        ],
+      });
+
+      // Generate dan download
+      const blob = await Packer.toBlob(doc);
+      saveAs(blob, `dokumen-akademik-${Date.now()}.docx`);
+
+      // Simpan ke database
+      const docData = {
+        title: `Dokumen Akademik - ${new Date().toLocaleDateString('id-ID')}`,
+        content: aiMessages.map(msg => msg.content).join('\n\n'),
+        type: "generated",
+        chatId: chatId,
+      };
+
+      const response = await apiRequest("POST", "/api/documents", docData);
+      
+      toast({
+        title: "Dokumen berhasil diekspor",
+        description: "File DOCX telah diunduh dan disimpan ke database",
+      });
+
+      // Update callback jika ada
+      if (onDocumentUpdate) {
+        const savedDoc = await response.json();
+        onDocumentUpdate(savedDoc.id);
+      }
+
+    } catch (error) {
+      console.error("Error generating DOCX:", error);
+      toast({
+        title: "Gagal mengekspor dokumen",
+        description: "Terjadi kesalahan saat membuat file DOCX",
         variant: "destructive",
       });
     }
@@ -305,6 +409,20 @@ export default function ChatArea({
       </div>
 
       <div className="border-t border-gray-200 p-4">
+        {/* Tombol ekspor untuk mode create */}
+        {mode === "create" && messages.some(msg => msg.role === "assistant") && (
+          <div className="mb-4 flex justify-center">
+            <Button
+              onClick={generateDocxFromChat}
+              variant="outline"
+              className="gap-2"
+            >
+              <Download className="h-4 w-4" />
+              Ekspor ke DOCX
+            </Button>
+          </div>
+        )}
+        
         <div className="flex space-x-2">
           <Textarea
             value={input}

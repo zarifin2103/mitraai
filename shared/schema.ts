@@ -66,7 +66,8 @@ export const documents = pgTable("documents", {
   title: text("title").notNull(),
   content: text("content").notNull(),
   excerpt: text("excerpt"),
-  type: varchar("type").default("academic"),
+  type: varchar("type", { enum: ["uploaded", "generated", "academic"] }).default("academic"),
+  chatId: integer("chat_id").references(() => chats.id, { onDelete: "set null" }),
   wordCount: integer("word_count").default(0),
   pageCount: integer("page_count").default(1),
   referenceCount: integer("reference_count").default(0),
@@ -99,6 +100,7 @@ export const chatsRelations = relations(chats, ({ one, many }) => ({
     fields: [chats.documentId],
     references: [documents.id],
   }),
+  generatedDocuments: many(documents),
 }));
 
 export const messagesRelations = relations(messages, ({ one }) => ({
@@ -113,7 +115,10 @@ export const documentsRelations = relations(documents, ({ one, many }) => ({
     fields: [documents.userId],
     references: [users.id],
   }),
-  chats: many(chats),
+  chat: one(chats, {
+    fields: [documents.chatId],
+    references: [chats.id],
+  }),
 }));
 
 // Insert schemas
