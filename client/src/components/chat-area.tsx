@@ -177,11 +177,11 @@ export default function ChatArea({
 
         {messages.length === 0 && !isLoadingMessages && (
           <div className="flex items-start space-x-3">
-            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-              <Bot className="h-4 w-4 text-white" />
+            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+              <Bot className="h-4 w-4 text-primary-foreground" />
             </div>
-            <div className="bg-gray-100 rounded-lg p-4 max-w-2xl">
-              <div className="text-gray-800">
+            <div className="bg-white border border-border rounded-lg p-4 max-w-2xl shadow-sm">
+              <div className="text-foreground">
                 {mode === "riset" && 
                   "Selamat datang di Mode Riset! Saya siap membantu Anda dalam penelitian dan mencari referensi akademik. Bagaimana saya dapat membantu Anda hari ini?"
                 }
@@ -225,15 +225,15 @@ export default function ChatArea({
               <div
                 className={`rounded-lg p-4 max-w-2xl relative group ${
                   msg.role === "user"
-                    ? "bg-primary text-white"
-                    : "bg-gray-100 text-gray-800"
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "bg-white border border-border text-foreground shadow-sm"
                 }`}
               >
                 {msg.role === "assistant" && (
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0 hover:bg-accent"
                     onClick={() => copyToClipboard(msg.content, msg.id)}
                   >
                     {copiedMessageId === msg.id ? (
@@ -250,17 +250,17 @@ export default function ChatArea({
                       <ReactMarkdown 
                         remarkPlugins={[remarkGfm]}
                         components={{
-                          h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-2 text-gray-800" {...props} />,
-                          h2: ({node, ...props}) => <h2 className="text-base font-semibold mb-2 text-gray-800" {...props} />,
-                          h3: ({node, ...props}) => <h3 className="text-sm font-semibold mb-1 text-gray-800" {...props} />,
+                          h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-2 text-primary" {...props} />,
+                          h2: ({node, ...props}) => <h2 className="text-base font-semibold mb-2 text-primary" {...props} />,
+                          h3: ({node, ...props}) => <h3 className="text-sm font-semibold mb-1 text-primary" {...props} />,
                           ul: ({node, ...props}) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
                           ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
-                          li: ({node, ...props}) => <li className="text-gray-800" {...props} />,
-                          p: ({node, ...props}) => <p className="mb-2 text-gray-800" {...props} />,
-                          strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
-                          em: ({node, ...props}) => <em className="italic text-gray-800" {...props} />,
-                          code: ({node, ...props}) => <code className="bg-gray-200 px-1 py-0.5 rounded text-sm font-mono" {...props} />,
-                          blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-gray-300 pl-4 italic text-gray-700" {...props} />,
+                          li: ({node, ...props}) => <li className="text-foreground" {...props} />,
+                          p: ({node, ...props}) => <p className="mb-2 text-foreground" {...props} />,
+                          strong: ({node, ...props}) => <strong className="font-semibold text-primary" {...props} />,
+                          em: ({node, ...props}) => <em className="italic text-muted-foreground" {...props} />,
+                          code: ({node, ...props}) => <code className="bg-accent px-1 py-0.5 rounded text-sm font-mono text-accent-foreground" {...props} />,
+                          blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-primary pl-4 italic text-muted-foreground" {...props} />,
                         }}
                       >
                         {msg.content}
@@ -278,8 +278,8 @@ export default function ChatArea({
               </div>
 
               {msg.role === "user" && (
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center flex-shrink-0">
-                  <User className="h-4 w-4 text-gray-600" />
+                <div className="w-8 h-8 bg-secondary rounded-full flex items-center justify-center flex-shrink-0 shadow-md">
+                  <User className="h-4 w-4 text-secondary-foreground" />
                 </div>
               )}
             </div>
