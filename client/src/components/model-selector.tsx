@@ -1,6 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ModelSelectorProps {
   selectedModel: string;
@@ -83,61 +90,48 @@ export default function ModelSelector({ selectedModel, onModelChange, disabled }
   };
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {models.map((model) => (
-          <button
-            key={model.modelId}
-            onClick={() => onModelChange(model.modelId)}
-            disabled={disabled}
-            className={`p-4 border rounded-lg text-left transition-all hover:shadow-md ${
-              selectedModel === model.modelId
-                ? 'border-primary bg-primary/5 ring-2 ring-primary/20'
-                : 'border-gray-200 hover:border-gray-300'
-            } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-center space-x-2 mb-2">
-                <span className="text-lg">{getProviderIcon(model.provider)}</span>
-                <div>
-                  <h4 className="font-medium text-gray-900 text-sm leading-tight">
-                    {cleanModelName(model.displayName)}
-                  </h4>
-                  <p className="text-xs text-gray-500">{model.provider}</p>
+    <div className="w-full max-w-md">
+      <Select value={selectedModel} onValueChange={onModelChange} disabled={disabled}>
+        <SelectTrigger className="w-full">
+          <SelectValue placeholder="Pilih Model AI">
+            {selectedModelData && (
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm">{getProviderIcon(selectedModelData.provider)}</span>
+                  <span className="font-medium">{cleanModelName(selectedModelData.displayName)}</span>
                 </div>
-              </div>
-              <div className={`px-2 py-1 rounded-full text-xs font-medium ${getCreditColor(model.costPerMessage)}`}>
-                {model.costPerMessage === 0 ? 'GRATIS' : `${model.costPerMessage} kredit`}
-              </div>
-            </div>
-            
-            {selectedModel === model.modelId && (
-              <div className="mt-2 pt-2 border-t border-gray-200">
-                <div className="flex items-center text-xs text-primary">
-                  <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
-                  Model Terpilih
-                </div>
+                <Badge 
+                  variant="secondary" 
+                  className={`text-xs ml-2 ${getCreditColor(selectedModelData.costPerMessage)}`}
+                >
+                  {selectedModelData.costPerMessage === 0 ? 'GRATIS' : `${selectedModelData.costPerMessage} kredit`}
+                </Badge>
               </div>
             )}
-          </button>
-        ))}
-      </div>
-      
-      {selectedModelData && (
-        <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <span className="text-lg">{getProviderIcon(selectedModelData.provider)}</span>
-            <div className="flex-1">
-              <p className="text-sm font-medium text-blue-900">
-                Model Aktif: {cleanModelName(selectedModelData.displayName)}
-              </p>
-              <p className="text-xs text-blue-700">
-                Biaya: {selectedModelData.costPerMessage === 0 ? 'Gratis' : `${selectedModelData.costPerMessage} kredit per pesan`}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          {models.map((model) => (
+            <SelectItem key={model.modelId} value={model.modelId} className="py-3">
+              <div className="flex items-center justify-between w-full">
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm">{getProviderIcon(model.provider)}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium text-sm">{cleanModelName(model.displayName)}</span>
+                    <span className="text-xs text-muted-foreground">{model.provider}</span>
+                  </div>
+                </div>
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs ml-3 ${getCreditColor(model.costPerMessage)}`}
+                >
+                  {model.costPerMessage === 0 ? 'GRATIS' : `${model.costPerMessage} kredit`}
+                </Badge>
+              </div>
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }
