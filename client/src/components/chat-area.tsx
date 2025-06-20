@@ -31,7 +31,9 @@ export default function ChatArea({
   const { data: messages = [], isLoading } = useQuery<Message[]>({
     queryKey: ["/api/chats", chatId, "messages"],
     enabled: !!chatId,
+
     onError: (error: Error) => {
+      console.error("Error fetching messages:", error);
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
@@ -103,32 +105,32 @@ export default function ChatArea({
   };
 
   const formatMessage = (content: string) => {
-    // Simple markdown-like formatting
-    if (!content || typeof content !== 'string') {
-      return <div key="empty">No content</div>;
+    if (!content || content.trim() === '') {
+      return "No content";
     }
     
+    // Simple formatting for now to ensure content displays
     return content
       .split('\n')
       .map((line, index) => {
-        // Handle headers
+        if (line.startsWith('**') && line.endsWith('**') && line.length > 4) {
+          return <div key={index} className="font-bold text-lg mt-3 mb-2">{line.slice(2, -2)}</div>;
+        }
         if (line.startsWith('# ')) {
-          return <h3 key={index} className="text-lg font-bold mt-4 mb-2">{line.slice(2)}</h3>;
+          return <div key={index} className="font-bold text-xl mt-4 mb-2">{line.slice(2)}</div>;
         }
         if (line.startsWith('## ')) {
-          return <h4 key={index} className="text-md font-semibold mt-3 mb-2">{line.slice(3)}</h4>;
+          return <div key={index} className="font-semibold text-lg mt-3 mb-2">{line.slice(3)}</div>;
         }
-        
-        // Handle bullet points
-        if (line.startsWith('- ')) {
-          return <li key={index} className="ml-4">{line.slice(2)}</li>;
+        if (line.startsWith('- ') || line.startsWith('* ')) {
+          return <div key={index} className="ml-4 mb-1">• {line.slice(2)}</div>;
         }
-        
-        // Regular paragraphs
+        if (/^\d+\.\s/.test(line)) {
+          return <div key={index} className="ml-4 mb-1">{line}</div>;
+        }
         if (line.trim()) {
-          return <p key={index} className="mb-2">{line}</p>;
+          return <div key={index} className="mb-2">{line}</div>;
         }
-        
         return <br key={index} />;
       });
   };
@@ -211,7 +213,9 @@ export default function ChatArea({
                   }`}
                 >
                   <div className="prose prose-sm max-w-none">
-                    {formatMessage(msg.content || "No content available")}
+                    <div className="whitespace-pre-wrap">
+                      {formatMessage(msg.content || "")}
+                    </div>
                   </div>
                 </div>
                 
