@@ -14,7 +14,7 @@
       "destination": "/dist/index.js"
     },
     {
-      "source": "/((?!api/).*\\..{1,5}$)",
+      "source": "/((?!api/).*\..{1,5}$)",
       "destination": "/public/$1"
     },
     {
