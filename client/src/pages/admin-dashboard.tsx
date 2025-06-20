@@ -261,7 +261,7 @@ export default function AdminDashboard() {
         </TabsContent>
 
         <TabsContent value="users" className="space-y-3">
-          <UsersTab users={users} isLoading={usersLoading} />
+          <UsersTab />
         </TabsContent>
 
         <TabsContent value="packages" className="space-y-3">
@@ -273,7 +273,7 @@ export default function AdminDashboard() {
         </TabsContent>
 
         <TabsContent value="api-keys" className="space-y-3">
-          <ApiKeysTab />
+          <ModelsTab />
         </TabsContent>
 
         <TabsContent value="settings" className="space-y-3">
@@ -284,18 +284,23 @@ export default function AdminDashboard() {
   );
 }
 
-function UsersTab({ users, isLoading }: { users: User[], isLoading: boolean }) {
+function UsersTab() {
   const { toast } = useToast();
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [assigningUser, setAssigningUser] = useState<User | null>(null);
   const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
+  const { data: users = [], isLoading: usersLoading, refetch: refetchUsers } = useQuery<User[]>({
+    queryKey: ['/api/admin/users'],
+  });
+
   const { data: packages = [] } = useQuery<SubscriptionPackage[]>({
     queryKey: ['/api/admin/packages'],
   });
 
-  if (isLoading) return <div>Loading users...</div>;
+  if (usersLoading) return <div>Loading users...</div>;
 
   const handleEditUser = (user: User) => {
     setEditingUser(user);
@@ -326,9 +331,33 @@ function UsersTab({ users, isLoading }: { users: User[], isLoading: boolean }) {
       toast({ title: "Package assigned successfully" });
       setIsAssignDialogOpen(false);
       setAssigningUser(null);
-      window.location.reload();
+      refetchUsers();
     } catch (error) {
       toast({ title: "Failed to assign package", variant: "destructive" });
+    }
+  };
+
+  const handleCreateUser = async (formData: FormData) => {
+    try {
+      const userData = {
+        username: formData.get('username')?.toString(),
+        email: formData.get('email')?.toString(),
+        password: formData.get('password')?.toString(),
+        firstName: formData.get('firstName')?.toString(),
+        lastName: formData.get('lastName')?.toString(),
+        isAdmin: formData.get('isAdmin') === 'on',
+      };
+
+      await apiRequest('/api/admin/users', {
+        method: 'POST',
+        body: JSON.stringify(userData),
+      });
+
+      toast({ title: "User created successfully" });
+      setIsCreateDialogOpen(false);
+      refetchUsers();
+    } catch (error) {
+      toast({ title: "Failed to create user", variant: "destructive" });
     }
   };
 
@@ -352,7 +381,7 @@ function UsersTab({ users, isLoading }: { users: User[], isLoading: boolean }) {
       toast({ title: "User updated successfully" });
       setIsEditDialogOpen(false);
       setEditingUser(null);
-      window.location.reload(); // Refresh to see changes
+      refetchUsers();
     } catch (error) {
       toast({ title: "Failed to update user", variant: "destructive" });
     }
@@ -362,7 +391,12 @@ function UsersTab({ users, isLoading }: { users: User[], isLoading: boolean }) {
     <>
       <Card>
         <CardHeader>
-          <CardTitle>User Management</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>User Management</CardTitle>
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
+              Create User
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -491,6 +525,41 @@ function UsersTab({ users, isLoading }: { users: User[], isLoading: boolean }) {
               />
             </div>
             <Button type="submit" className="w-full">Assign Package</Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New User</DialogTitle>
+          </DialogHeader>
+          <form action={handleCreateUser} className="space-y-4">
+            <div>
+              <Label htmlFor="username">Username</Label>
+              <Input id="username" name="username" required />
+            </div>
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" name="email" type="email" required />
+            </div>
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" name="password" type="password" required />
+            </div>
+            <div>
+              <Label htmlFor="firstName">First Name</Label>
+              <Input id="firstName" name="firstName" />
+            </div>
+            <div>
+              <Label htmlFor="lastName">Last Name</Label>
+              <Input id="lastName" name="lastName" />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox id="isAdmin" name="isAdmin" />
+              <Label htmlFor="isAdmin">Administrator</Label>
+            </div>
+            <Button type="submit" className="w-full">Create User</Button>
           </form>
         </DialogContent>
       </Dialog>
