@@ -35,7 +35,15 @@ export default function ChatArea({
   } = useQuery<Message[]>({
     queryKey: ["/api/chats", chatId, "messages"],
     enabled: !!chatId,
-    staleTime: 5000,
+    staleTime: 0,
+    cacheTime: 0,
+    refetchOnWindowFocus: true,
+    onSuccess: (data) => {
+      console.log(`✅ Messages loaded for chat ${chatId}:`, data?.length || 0, data);
+    },
+    onError: (error) => {
+      console.error("❌ Error fetching messages:", error);
+    },
   });
 
   const sendMessageMutation = useMutation({
@@ -135,6 +143,10 @@ export default function ChatArea({
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="text-xs text-blue-600 mb-2">
+          DEBUG: Chat {chatId} | Messages: {messages?.length || 0} | Loading: {isLoadingMessages ? 'Yes' : 'No'} | Error: {messagesError ? 'Yes' : 'No'}
+        </div>
+
         {messages.length === 0 && !isLoadingMessages && (
           <div className="flex items-start space-x-3">
             <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
@@ -190,7 +202,7 @@ export default function ChatArea({
                 }`}
               >
                 <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {msg.content || "No content available"}
+                  {msg.content || "⚠️ No content available"}
                 </div>
                 <div className="text-xs opacity-60 mt-2">
                   {new Date(msg.createdAt).toLocaleTimeString()}
