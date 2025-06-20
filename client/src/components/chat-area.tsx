@@ -31,9 +31,7 @@ export default function ChatArea({
   const { data: messages = [], isLoading } = useQuery<Message[]>({
     queryKey: ["/api/chats", chatId, "messages"],
     enabled: !!chatId,
-
     onError: (error: Error) => {
-      console.error("Error fetching messages:", error);
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
