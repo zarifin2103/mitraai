@@ -1,22 +1,25 @@
 {
   "version": 2,
-  "framework": "vite",
-  "buildCommand": "cd client && npx vite build --emptyOutDir --outDir ../dist",
-  "outputDirectory": "dist",
   "installCommand": "npm install",
-  "functions": {
-    "api/*.ts": {
-      "runtime": "@vercel/node"
+  "buildCommand": "npm run build",
+  "builds": [
+    {
+      "src": "dist/index.js",
+      "use": "@vercel/node"
     }
-  },
+  ],
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/index"
+      "destination": "/dist/index.js"
+    },
+    {
+      "source": "/((?!api/).*\..{1,5}$)",
+      "destination": "/public/$1"
     },
     {
       "source": "/(.*)",
-      "destination": "/index.html"
+      "destination": "/public/index.html"
     }
   ]
 }

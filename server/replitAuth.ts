@@ -61,14 +61,21 @@ function updateUserSession(
 async function upsertUser(
   claims: any,
 ) {
+  const bcrypt = await import('bcrypt');
+  const placeholderPassword = 'oauth_user_placeholder_password_replit_auth'; // A long, random, unique string is better
+  const hashedPassword = await bcrypt.hash(placeholderPassword, 10);
+
   await storage.upsertUser({
-    id: claims["sub"],
-    username: claims["email"] || claims["sub"],
-    password: 'oauth_user',
-    email: claims["email"],
-    firstName: claims["first_name"],
-    lastName: claims["last_name"],
-    profileImageUrl: claims["profile_image_url"],
+    id: String(claims["sub"]), // Ensure ID is string
+    username: String(claims["email"] || claims["name"] || claims["sub"]), // Use email, fallback to name or sub
+    password: hashedPassword, // Provide a hashed placeholder
+    email: String(claims["email"]),
+    firstName: claims["first_name"] ? String(claims["first_name"]) : null,
+    lastName: claims["last_name"] ? String(claims["last_name"]) : null,
+    profileImageUrl: claims["profile_image_url"] ? String(claims["profile_image_url"]) : null,
+    // Ensure other potentially required fields from your User schema are present
+    // For example, if 'isAdmin' is a non-nullable field in your 'users' table:
+    // isAdmin: false,
   });
 }
 

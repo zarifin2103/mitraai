@@ -78,12 +78,26 @@ async function generateResearchInsights(topic: string, chatId: number) {
     }
   ];
 
-  const keywords = [...baseKeywords, ...additionalKeywords].map(k => ({
-    keyword: k.keyword,
-    frequency: k.frequency || 1,
-    context: k.context,
-    importanceScore: k.importance?.toString() || k.importanceScore || "0.70",
-  }));
+  const keywords = [...baseKeywords, ...additionalKeywords].map(k => {
+    let freq = 1;
+    if ('frequency' in k && typeof k.frequency === 'number') {
+      freq = k.frequency;
+    }
+
+    let impScore = "0.70";
+    if ('importance' in k && typeof k.importance === 'number') {
+      impScore = k.importance.toString();
+    } else if ('importanceScore' in k && typeof k.importanceScore === 'string') {
+      impScore = k.importanceScore;
+    }
+
+    return {
+      keyword: k.keyword,
+      frequency: freq,
+      context: k.context,
+      importanceScore: impScore,
+    };
+  });
 
   return { sources, keywords };
 }
@@ -219,14 +233,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/chats', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const { mode = "riset", title } = req.body;
+      const { mode = "riset", title } = req.body as { mode?: 'riset' | 'create' | 'edit', title?: string };
       
       // Generate initial title based on mode
-      const initialTitle = title || {
-        riset: "Riset Baru",
-        create: "Buat Dokumen",
-        edit: "Edit Dokumen"
-      }[mode] || "Chat Baru";
+      const modeMap: Record<string, string> = { riset: "Riset Baru", create: "Buat Dokumen", edit: "Edit Dokumen" };
+      const initialTitle = title || modeMap[mode] || "Chat Baru";
       
       const chat = await storage.createChat({
         userId,
@@ -278,10 +289,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check user credits before processing
       const userCredits = await storage.getUserCredits(userId);
-      if (!userCredits || ((userCredits.totalCredits || 0) - (userCredits.usedCredits || 0)) <= 0) {
+      if (!userCredits || ((userCredits?.totalCredits || 0) - (userCredits?.usedCredits || 0)) <= 0) {
         return res.status(402).json({ 
           message: "Insufficient credits. Please contact admin to add more credits.",
-          creditsRemaining: userCredits ? (userCredits.totalCredits || 0) - (userCredits.usedCredits || 0) : 0
+          creditsRemaining: userCredits ? (userCredits?.totalCredits || 0) - (userCredits?.usedCredits || 0) : 0
         });
       }
       
@@ -313,7 +324,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get model credit cost and deduct credits
       const model = await storage.getLlmModel(modelId);
-      const creditCost = model ? model.creditCost : 1;
+      const creditCost = model ? (model.costPerMessage || 1) : 1;
       await storage.deductCredits(userId, creditCost);
 
       // Generate descriptive title based on content and mode
@@ -328,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         userMessage, 
         aiMessage,
-        creditsRemaining: updatedCredits ? (updatedCredits.totalCredits || 0) - (updatedCredits.usedCredits || 0) : 0
+        creditsRemaining: updatedCredits ? (updatedCredits?.totalCredits || 0) - (updatedCredits?.usedCredits || 0) : 0
       });
     } catch (error) {
       console.error("Error sending message:", error);
@@ -518,30 +529,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new user (admin only)
   app.post('/api/admin/users', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
-      const { username, email, password, firstName, lastName, isAdmin } = req.body;
+      const { username, email, password, firstName, lastName, isAdmin: isAdminFlag } = req.body as {
+        username?: any;
+        email?: any;
+        password?: any;
+        firstName?: any;
+        lastName?: any;
+        isAdmin?: any;
+      };
       
       // Check if user already exists
-      const existingUser = await storage.getUserByUsername(username);
+      const existingUser = await storage.getUserByUsername(String(username));
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
       }
 
-      const existingEmail = await storage.getUserByEmail(email);
+      const existingEmail = await storage.getUserByEmail(String(email));
       if (existingEmail) {
         return res.status(400).json({ message: "Email already exists" });
       }
 
       // Create user with hashed password
       const bcrypt = await import('bcrypt');
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(String(password), 10);
       const newUser = await storage.createUser({
         id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-        username,
-        email,
+        username: String(username),
+        email: String(email),
         password: hashedPassword,
-        firstName: firstName || null,
-        lastName: lastName || null,
-        isAdmin: isAdmin || false,
+        firstName: firstName ? String(firstName) : null,
+        lastName: lastName ? String(lastName) : null,
+        isAdmin: Boolean(isAdminFlag),
       });
 
       // Create default credits for new user
@@ -574,9 +592,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return {
               ...user,
               credits: credits ? {
-                total: credits.totalCredits,
-                used: credits.usedCredits,
-                remaining: (credits.totalCredits || 0) - (credits.usedCredits || 0)
+                total: credits?.totalCredits || 0,
+                used: credits?.usedCredits || 0,
+                remaining: (credits?.totalCredits || 0) - (credits?.usedCredits || 0)
               } : null,
               subscription: subscription ? {
                 status: subscription.status,
@@ -655,7 +673,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingCredits = await storage.getUserCredits(userId);
       if (existingCredits) {
         await storage.updateUserCredits(userId, {
-          totalCredits: (existingCredits.totalCredits || 0) + package_.credits,
+          totalCredits: (existingCredits?.totalCredits || 0) + package_.credits,
         });
       } else {
         await storage.createUserCredits({
