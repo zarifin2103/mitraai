@@ -1,10 +1,19 @@
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add CORS middleware
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production'
+    ? true // Consider restricting this to your Vercel deployment URL if possible
+    : ['http://localhost:3000', 'http://localhost:5173', /\.replit\.app$/, /\.repl\.co$/], // Added Replit origins
+  credentials: true,
+}));
 
 app.use((req, res, next) => {
   const start = Date.now();

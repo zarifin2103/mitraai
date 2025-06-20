@@ -76,15 +76,24 @@ export async function generateAIResponse(
     });
 
     return response.choices[0].message.content || "Maaf, saya tidak dapat memberikan respons saat ini.";
-  } catch (error) {
-    console.error("Error generating AI response:", error);
-    
-    // Fallback response when API is unavailable
-    if (error.message?.includes("402") || error.message?.includes("credits") || error.message?.includes("404")) {
-      return generateFallbackResponse(mode, messages[messages.length - 1]?.content || "");
+  } catch (error: unknown) {
+    let errorMessage = "Gagal menghasilkan respons AI. Silakan coba lagi.";
+    let logMessage = "Error generating AI response:";
+    if (error instanceof Error) {
+      logMessage += error.message;
+      // Fallback response when API is unavailable
+      if (error.message?.includes("402") || error.message?.includes("credits") || error.message?.includes("404")) {
+        return generateFallbackResponse(mode, messages[messages.length - 1]?.content || "");
+      }
+      errorMessage = `Gagal menghasilkan respons AI: ${error.message}`;
+    } else if (typeof error === 'string') {
+      logMessage += error;
+      errorMessage = `Gagal menghasilkan respons AI: ${error}`;
+    } else {
+      logMessage += "Unknown error structure";
     }
-    
-    throw new Error("Gagal menghasilkan respons AI. Silakan coba lagi.");
+    console.error(logMessage, error); // Log the original error object too for more details
+    throw new Error(errorMessage);
   }
 }
 
@@ -142,9 +151,20 @@ export async function generateDocumentContent(
       pageCount: result.pageCount || 1,
       referenceCount: result.referenceCount || 0,
     };
-  } catch (error) {
-    console.error("Error generating document content:", error);
-    throw new Error("Gagal menghasilkan konten dokumen. Silakan coba lagi.");
+  } catch (error: unknown) {
+    let errorMessage = "Gagal menghasilkan konten dokumen. Silakan coba lagi.";
+    let logMessage = "Error generating document content:";
+    if (error instanceof Error) {
+      logMessage += error.message;
+      errorMessage = `Gagal menghasilkan konten dokumen: ${error.message}`;
+    } else if (typeof error === 'string') {
+      logMessage += error;
+      errorMessage = `Gagal menghasilkan konten dokumen: ${error}`;
+    } else {
+      logMessage += "Unknown error structure";
+    }
+    console.error(logMessage, error); // Log the original error object too
+    throw new Error(errorMessage);
   }
 }
 
