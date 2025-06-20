@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send, Bot, User, FileText, Copy, Check, Download, PenTool } from "lucide-react";
+import { Send, Bot, User, FileText, Copy, Check, Download, PenTool, Coins } from "lucide-react";
 import WritingAssistant from "./writing-assistant";
 import ModelSelector from "./model-selector";
 import ReactMarkdown from "react-markdown";
@@ -13,6 +13,7 @@ import { Message } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ChatAreaProps {
   mode: "riset" | "create" | "edit";
@@ -35,6 +36,13 @@ export default function ChatArea({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Fetch user credits
+  const { data: credits } = useQuery({
+    queryKey: ['/api/user/credits'],
+    enabled: !!user,
+  });
 
   const { 
     data: messages = [], 
@@ -272,12 +280,42 @@ export default function ChatArea({
               {mode === "edit" && "Edit dan perbaiki dokumen yang ada"}
             </p>
           </div>
-          {documentId && (
-            <Button variant="outline" size="sm" onClick={() => onDocumentUpdate(documentId)}>
-              <FileText className="h-4 w-4 mr-2" />
-              Pratinjau Dokumen
-            </Button>
-          )}
+          
+          <div className="flex items-center gap-3">
+            {/* User Credits Display */}
+            {credits && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 rounded-lg border border-blue-200">
+                <Coins className="h-4 w-4 text-blue-600" />
+                <div className="text-sm">
+                  <span className="font-medium text-blue-800">
+                    {(credits.totalCredits - credits.usedCredits).toLocaleString()}
+                  </span>
+                  <span className="text-blue-600 mx-1">/</span>
+                  <span className="text-blue-600">
+                    {credits.totalCredits.toLocaleString()}
+                  </span>
+                </div>
+                <div className="w-16 h-2 bg-blue-200 rounded-full overflow-hidden">
+                  <div 
+                    className={`h-full transition-all duration-300 ${
+                      ((credits.totalCredits - credits.usedCredits) / credits.totalCredits) * 100 > 50 ? 'bg-blue-600' : 
+                      ((credits.totalCredits - credits.usedCredits) / credits.totalCredits) * 100 > 20 ? 'bg-yellow-500' : 'bg-red-500'
+                    }`}
+                    style={{ 
+                      width: `${Math.max(((credits.totalCredits - credits.usedCredits) / credits.totalCredits) * 100, 0)}%` 
+                    }}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {documentId && (
+              <Button variant="outline" size="sm" onClick={() => onDocumentUpdate(documentId)}>
+                <FileText className="h-4 w-4 mr-2" />
+                Pratinjau Dokumen
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
