@@ -157,6 +157,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await this.db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
   async createUser(userData: UpsertUser): Promise<User> {
     const [user] = await this.db
       .insert(users)
@@ -182,11 +187,12 @@ export class DatabaseStorage implements IStorage {
 
   // Chat operations
   async getUserChats(userId: string): Promise<Chat[]> {
-    return await db
+    const result = await this.db
       .select()
       .from(chats)
       .where(eq(chats.userId, userId))
       .orderBy(desc(chats.updatedAt));
+    return result as Chat[];
   }
 
   async createChat(chat: InsertChat): Promise<Chat> {
@@ -376,7 +382,7 @@ export class DatabaseStorage implements IStorage {
       throw new Error(`User credits not found for user ${userId}`);
     }
 
-    const remainingCredits = currentCredits.totalCredits - currentCredits.usedCredits;
+    const remainingCredits = (currentCredits.totalCredits || 0) - (currentCredits.usedCredits || 0);
     if (remainingCredits < amount) {
       throw new Error(`Insufficient credits. Required: ${amount}, Available: ${remainingCredits}`);
     }
@@ -427,8 +433,8 @@ export class DatabaseStorage implements IStorage {
     return package_;
   }
 
-  async createSubscriptionPackage(package_: InsertSubscriptionPackage): Promise<SubscriptionPackage> {
-    const [newPackage] = await this.db.insert(subscriptionPackages).values(package_).returning();
+  async createSubscriptionPackage(packageData: InsertSubscriptionPackage): Promise<SubscriptionPackage> {
+    const [newPackage] = await this.db.insert(subscriptionPackages).values(packageData).returning();
     return newPackage;
   }
 
@@ -605,7 +611,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllChatsForTitleUpdate(): Promise<Chat[]> {
-    return await this.db.select().from(chats).where(eq(chats.title, "New Chat")).orderBy(desc(chats.createdAt));
+    const result = await this.db.select().from(chats).where(eq(chats.title, "New Chat")).orderBy(desc(chats.createdAt));
+    return result as Chat[];
   }
 }
 

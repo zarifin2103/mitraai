@@ -278,10 +278,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Check user credits before processing
       const userCredits = await storage.getUserCredits(userId);
-      if (!userCredits || (userCredits.totalCredits - userCredits.usedCredits) <= 0) {
+      if (!userCredits || ((userCredits.totalCredits || 0) - (userCredits.usedCredits || 0)) <= 0) {
         return res.status(402).json({ 
           message: "Insufficient credits. Please contact admin to add more credits.",
-          creditsRemaining: userCredits ? userCredits.totalCredits - userCredits.usedCredits : 0
+          creditsRemaining: userCredits ? (userCredits.totalCredits || 0) - (userCredits.usedCredits || 0) : 0
         });
       }
       
@@ -328,7 +328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ 
         userMessage, 
         aiMessage,
-        creditsRemaining: updatedCredits ? updatedCredits.totalCredits - updatedCredits.usedCredits : 0
+        creditsRemaining: updatedCredits ? (updatedCredits.totalCredits || 0) - (updatedCredits.usedCredits || 0) : 0
       });
     } catch (error) {
       console.error("Error sending message:", error);
@@ -535,6 +535,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const bcrypt = await import('bcrypt');
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = await storage.createUser({
+        id: `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         username,
         email,
         password: hashedPassword,
@@ -575,7 +576,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               credits: credits ? {
                 total: credits.totalCredits,
                 used: credits.usedCredits,
-                remaining: credits.totalCredits - credits.usedCredits
+                remaining: (credits.totalCredits || 0) - (credits.usedCredits || 0)
               } : null,
               subscription: subscription ? {
                 status: subscription.status,
@@ -654,7 +655,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingCredits = await storage.getUserCredits(userId);
       if (existingCredits) {
         await storage.updateUserCredits(userId, {
-          totalCredits: existingCredits.totalCredits + package_.credits,
+          totalCredits: (existingCredits.totalCredits || 0) + package_.credits,
         });
       } else {
         await storage.createUserCredits({

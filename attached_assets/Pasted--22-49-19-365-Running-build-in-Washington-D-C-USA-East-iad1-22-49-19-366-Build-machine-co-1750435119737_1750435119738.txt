@@ -1,0 +1,80 @@
+[22:49:19.365] Running build in Washington, D.C., USA (East) – iad1
+[22:49:19.366] Build machine configuration: 2 cores, 8 GB
+[22:49:19.397] Cloning github.com/zarifin2103/mitraai (Branch: main, Commit: 2593857)
+[22:49:19.603] Previous build caches not available
+[22:49:19.794] Cloning completed: 396.000ms
+[22:49:19.825] Found .vercelignore
+[22:49:19.836] Removed 55 ignored files defined in .vercelignore
+[22:49:19.836]   /.git/config
+[22:49:19.837]   /.git/description
+[22:49:19.837]   /.git/FETCH_HEAD
+[22:49:19.837]   /.git/HEAD
+[22:49:19.837]   /.git/hooks/applypatch-msg.sample
+[22:49:19.837]   /.git/hooks/commit-msg.sample
+[22:49:19.837]   /.git/hooks/fsmonitor-watchman.sample
+[22:49:19.837]   /.git/hooks/post-update.sample
+[22:49:19.837]   /.git/hooks/pre-applypatch.sample
+[22:49:19.837]   /.git/hooks/pre-commit.sample
+[22:49:20.779] Running "vercel build"
+[22:49:21.230] Vercel CLI 43.3.0
+[22:49:21.385] WARN! Due to `builds` existing in your configuration file, the Build and Development Settings defined in your Project Settings will not apply. Learn More: https://vercel.link/unused-build-settings
+[22:49:21.843] Installing dependencies...
+[22:49:27.023] npm warn deprecated @esbuild-kit/core-utils@3.3.2: Merged into tsx: https://tsx.is
+[22:49:27.024] npm warn deprecated @esbuild-kit/esm-loader@2.6.5: Merged into tsx: https://tsx.is
+[22:49:32.116] 
+[22:49:32.116] added 622 packages in 10s
+[22:49:32.116] 
+[22:49:32.117] 152 packages are looking for funding
+[22:49:32.117]   run `npm fund` for details
+[22:49:32.348] Using TypeScript 5.6.3 (local user-provided)
+[22:49:36.712] api/index.ts(3,18): error TS2307: Cannot find module 'cors' or its corresponding type declarations.
+[22:49:36.713] 
+[22:49:38.335] server/routes.ts(83,18): error TS2339: Property 'frequency' does not exist on type '{ keyword: string; context: string; importance: number; } | { keyword: string; frequency: number; context: string; importanceScore: string; }'.
+[22:49:38.336]   Property 'frequency' does not exist on type '{ keyword: string; context: string; importance: number; }'.
+[22:49:38.337] server/routes.ts(85,24): error TS2339: Property 'importance' does not exist on type '{ keyword: string; context: string; importance: number; } | { keyword: string; frequency: number; context: string; importanceScore: string; }'.
+[22:49:38.338]   Property 'importance' does not exist on type '{ keyword: string; frequency: number; context: string; importanceScore: string; }'.
+[22:49:38.338] server/routes.ts(85,52): error TS2339: Property 'importanceScore' does not exist on type '{ keyword: string; context: string; importance: number; } | { keyword: string; frequency: number; context: string; importanceScore: string; }'.
+[22:49:38.338]   Property 'importanceScore' does not exist on type '{ keyword: string; context: string; importance: number; }'.
+[22:49:38.339] server/routes.ts(225,37): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ riset: string; create: string; edit: string; }'.
+[22:49:38.339] server/routes.ts(281,28): error TS18047: 'userCredits.totalCredits' is possibly 'null'.
+[22:49:38.340] server/routes.ts(281,55): error TS18047: 'userCredits.usedCredits' is possibly 'null'.
+[22:49:38.340] server/routes.ts(284,43): error TS18047: 'userCredits.totalCredits' is possibly 'null'.
+[22:49:38.340] server/routes.ts(284,70): error TS18047: 'userCredits.usedCredits' is possibly 'null'.
+[22:49:38.341] server/routes.ts(316,40): error TS2339: Property 'creditCost' does not exist on type '{ id: number; createdAt: Date | null; updatedAt: Date | null; modelId: string; displayName: string; provider: string; costPerMessage: number | null; isActive: boolean | null; isFree: boolean | null; }'.
+[22:49:38.341] server/routes.ts(331,44): error TS18047: 'updatedCredits.totalCredits' is possibly 'null'.
+[22:49:38.341] server/routes.ts(331,74): error TS18047: 'updatedCredits.usedCredits' is possibly 'null'.
+[22:49:38.342] server/routes.ts(529,43): error TS2339: Property 'getUserByEmail' does not exist on type 'DatabaseStorage'.
+[22:49:38.342] server/routes.ts(537,48): error TS2345: Argument of type '{ username: any; email: any; password: string; firstName: any; lastName: any; isAdmin: any; }' is not assignable to parameter of type '{ id: string; username: string; password: string; email?: string | null | undefined; firstName?: string | null | undefined; lastName?: string | null | undefined; profileImageUrl?: string | null | undefined; isAdmin?: boolean | ... 1 more ... | undefined; createdAt?: Date | ... 1 more ... | undefined; updatedAt?: Dat...'.
+[22:49:38.345]   Property 'id' is missing in type '{ username: any; email: any; password: string; firstName: any; lastName: any; isAdmin: any; }' but required in type '{ id: string; username: string; password: string; email?: string | null | undefined; firstName?: string | null | undefined; lastName?: string | null | undefined; profileImageUrl?: string | null | undefined; isAdmin?: boolean | ... 1 more ... | undefined; createdAt?: Date | ... 1 more ... | undefined; updatedAt?: Dat...'.
+[22:49:38.346] server/routes.ts(578,28): error TS18047: 'credits.totalCredits' is possibly 'null'.
+[22:49:38.346] server/routes.ts(578,51): error TS18047: 'credits.usedCredits' is possibly 'null'.
+[22:49:38.346] server/routes.ts(657,25): error TS18047: 'existingCredits.totalCredits' is possibly 'null'.
+[22:49:38.347] 
+[22:49:38.408] server/replitAuth.ts(64,28): error TS2345: Argument of type '{ id: any; email: any; firstName: any; lastName: any; profileImageUrl: any; }' is not assignable to parameter of type '{ id: string; username: string; password: string; email?: string | null | undefined; firstName?: string | null | undefined; lastName?: string | null | undefined; profileImageUrl?: string | null | undefined; isAdmin?: boolean | ... 1 more ... | undefined; createdAt?: Date | ... 1 more ... | undefined; updatedAt?: Dat...'.
+[22:49:38.411]   Type '{ id: any; email: any; firstName: any; lastName: any; profileImageUrl: any; }' is missing the following properties from type '{ id: string; username: string; password: string; email?: string | null | undefined; firstName?: string | null | undefined; lastName?: string | null | undefined; profileImageUrl?: string | null | undefined; isAdmin?: boolean | ... 1 more ... | undefined; createdAt?: Date | ... 1 more ... | undefined; updatedAt?: Dat...': username, password
+[22:49:38.412] server/replitAuth.ts(88,20): error TS2345: Argument of type '{}' is not assignable to parameter of type 'false | User | null | undefined'.
+[22:49:38.412] 
+[22:49:39.332] server/storage.ts(116,29): error TS1214: Identifier expected. 'package' is a reserved word in strict mode. Modules are automatically in strict mode.
+[22:49:39.333] server/storage.ts(146,14): error TS2420: Class 'DatabaseStorage' incorrectly implements interface 'IStorage'.
+[22:49:39.333]   Property 'getUserByEmail' is missing in type 'DatabaseStorage' but required in type 'IStorage'.
+[22:49:39.333] server/storage.ts(185,5): error TS2322: Type '{ [x: string]: any; }[]' is not assignable to type '{ id: number; mode: "riset" | "create" | "edit"; createdAt: Date | null; updatedAt: Date | null; userId: string; title: string; documentId: number | null; }[]'.
+[22:49:39.333]   Type '{ [x: string]: any; }' is missing the following properties from type '{ id: number; mode: "riset" | "create" | "edit"; createdAt: Date | null; updatedAt: Date | null; userId: string; title: string; documentId: number | null; }': id, mode, createdAt, updatedAt, and 3 more.
+[22:49:39.333] server/storage.ts(193,11): error TS2488: Type 'any[] | QueryResult<never>' must have a '[Symbol.iterator]()' method that returns an iterator.
+[22:49:39.333] server/storage.ts(379,30): error TS18047: 'currentCredits.totalCredits' is possibly 'null'.
+[22:49:39.334] server/storage.ts(379,60): error TS18047: 'currentCredits.usedCredits' is possibly 'null'.
+[22:49:39.334] server/storage.ts(398,83): error TS18047: 'updatedCredits.totalCredits' is possibly 'null'.
+[22:49:39.334] server/storage.ts(398,113): error TS18047: 'updatedCredits.usedCredits' is possibly 'null'.
+[22:49:39.334] server/storage.ts(608,5): error TS2322: Type '{ [x: string]: any; }[]' is not assignable to type '{ id: number; mode: "riset" | "create" | "edit"; createdAt: Date | null; updatedAt: Date | null; userId: string; title: string; documentId: number | null; }[]'.
+[22:49:39.334]   Type '{ [x: string]: any; }' is missing the following properties from type '{ id: number; mode: "riset" | "create" | "edit"; createdAt: Date | null; updatedAt: Date | null; userId: string; title: string; documentId: number | null; }': id, mode, createdAt, updatedAt, and 3 more.
+[22:49:39.334] 
+[22:49:39.416] server/openai.ts(83,9): error TS18046: 'error' is of type 'unknown'.
+[22:49:39.416] server/openai.ts(83,43): error TS18046: 'error' is of type 'unknown'.
+[22:49:39.416] server/openai.ts(83,81): error TS18046: 'error' is of type 'unknown'.
+[22:49:39.416] 
+[22:49:41.978] Build Completed in /vercel/output [20s]
+[22:49:42.153] Deploying outputs...
+[22:49:47.900] 
+[22:49:48.043] Deployment completed
+[22:50:00.946] Uploading build cache [89.89 MB]...
+[22:50:03.333] Build cache uploaded: 2.387s
+[22:50:05.580] Exiting build container
