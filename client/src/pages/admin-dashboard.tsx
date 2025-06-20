@@ -351,7 +351,7 @@ function PackagesTab({ packages, isLoading }: { packages: SubscriptionPackage[],
                   </ul>
                 </div>
               )}
-              <Button variant="outline" className="w-full mt-4" size="sm">
+              <Button variant="outline" className="w-full mt-4 border-blue-600 text-blue-600 hover:bg-blue-50" size="sm">
                 Edit Package
               </Button>
             </CardContent>
@@ -490,7 +490,7 @@ function SettingsTab({ settings, isLoading }: { settings: SystemSetting[], isLoa
                       {setting.dataType}
                     </code>
                     {setting.isPublic && <Badge variant="outline">Public</Badge>}
-                    <Button variant="outline" size="sm">Edit</Button>
+                    <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50" size="sm">Edit</Button>
                   </div>
                 </div>
               ))}
