@@ -100,7 +100,7 @@ export default function AdminDashboard() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-6 h-9">
           <TabsTrigger value="overview" className="flex items-center gap-2">
             <BarChart3 className="h-4 w-4" />
             Overview
@@ -127,15 +127,15 @@ export default function AdminDashboard() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <TabsContent value="overview" className="space-y-4">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 pt-3">
                 <CardTitle className="text-sm font-medium">Total Users</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalUsers}</div>
+              <CardContent className="pt-2">
+                <div className="text-xl font-bold">{totalUsers}</div>
                 <p className="text-xs text-muted-foreground">
                   {activeUsers} active users
                 </p>
@@ -147,7 +147,7 @@ export default function AdminDashboard() {
                 <CreditCard className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatRupiah(totalRevenue)}</div>
+                <div className="text-xl font-bold">{formatRupiah(totalRevenue)}</div>
                 <p className="text-xs text-muted-foreground">
                   From {payments.filter(p => p.status === 'paid').length} payments
                 </p>
@@ -159,7 +159,7 @@ export default function AdminDashboard() {
                 <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{packages.length}</div>
+                <div className="text-xl font-bold">{packages.length}</div>
                 <p className="text-xs text-muted-foreground">
                   {packages.filter(p => p.isActive).length} active
                 </p>
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
                 <Settings className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{settings.length}</div>
+                <div className="text-xl font-bold">{settings.length}</div>
                 <p className="text-xs text-muted-foreground">
                   System configurations
                 </p>
@@ -180,23 +180,23 @@ export default function AdminDashboard() {
           </div>
         </TabsContent>
 
-        <TabsContent value="users" className="space-y-4">
+        <TabsContent value="users" className="space-y-3">
           <UsersTab users={users} isLoading={usersLoading} />
         </TabsContent>
 
-        <TabsContent value="packages" className="space-y-4">
+        <TabsContent value="packages" className="space-y-3">
           <PackagesTab packages={packages} isLoading={packagesLoading} />
         </TabsContent>
 
-        <TabsContent value="payments" className="space-y-4">
+        <TabsContent value="payments" className="space-y-3">
           <PaymentsTab payments={payments} isLoading={paymentsLoading} />
         </TabsContent>
 
-        <TabsContent value="api-keys" className="space-y-4">
+        <TabsContent value="api-keys" className="space-y-3">
           <ApiKeysTab />
         </TabsContent>
 
-        <TabsContent value="settings" className="space-y-4">
+        <TabsContent value="settings" className="space-y-3">
           <SettingsTab settings={settings} isLoading={settingsLoading} />
         </TabsContent>
       </Tabs>
@@ -249,27 +249,29 @@ function UsersTab({ users, isLoading }: { users: User[], isLoading: boolean }) {
           <CardTitle>User Management</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
+          <div className="space-y-3">
             {users.map((user) => (
-              <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-semibold">{user.username}</h3>
-                  <p className="text-sm text-muted-foreground">{user.email}</p>
-                  <p className="text-xs text-muted-foreground">
-                    Joined: {new Date(user.createdAt).toLocaleDateString()}
-                  </p>
+              <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold truncate">{user.username}</h3>
+                    {user.isAdmin && <Badge variant="secondary" className="text-xs">Admin</Badge>}
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                    <span>Joined: {new Date(user.createdAt).toLocaleDateString()}</span>
+                    <span>Credits: {user.credits ? `${user.credits.remaining}/${user.credits.total}` : 'N/A'}</span>
+                    <span>Subscription: {user.subscription ? user.subscription.status : 'None'}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {user.isAdmin && <Badge variant="secondary">Admin</Badge>}
-                  <Button 
-                    variant="outline" 
-                    className="border-blue-600 text-blue-600 hover:bg-blue-50" 
-                    size="sm"
-                    onClick={() => handleEditUser(user)}
-                  >
-                    Edit
-                  </Button>
-                </div>
+                <Button 
+                  variant="outline" 
+                  className="border-blue-600 text-blue-600 hover:bg-blue-50" 
+                  size="sm"
+                  onClick={() => handleEditUser(user)}
+                >
+                  Edit
+                </Button>
               </div>
             ))}
           </div>
@@ -560,9 +562,13 @@ function ApiKeysTab() {
               {isLoading ? "Saving..." : "Save"}
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-1">
-            This key will be used for AI model requests
-          </p>
+          <div className="text-xs text-muted-foreground mt-2 space-y-1">
+            <p>This key will be used for AI model requests</p>
+            <div className="bg-blue-50 p-2 rounded border">
+              <p className="font-semibold text-blue-800">Best Practice:</p>
+              <p className="text-blue-700">Environment variables (.env) are more secure for production. Database storage is better for admin-configurable keys that change frequently.</p>
+            </div>
+          </div>
         </div>
       </CardContent>
     </Card>

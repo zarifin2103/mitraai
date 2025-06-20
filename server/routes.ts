@@ -474,11 +474,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Admin Routes
-  // Users management
+  // Users management with extended data
   app.get('/api/admin/users', isAuthenticated, isAdmin, async (req: any, res) => {
     try {
       const users = await storage.getAllUsers();
-      res.json(users);
+      
+      // Get additional data for each user
+      const usersWithData = await Promise.all(
+        users.map(async (user) => {
+          try {
+            const credits = await storage.getUserCredits(user.id);
+            const subscription = await storage.getUserSubscription(user.id);
+            
+            return {
+              ...user,
+              credits: credits ? {
+                total: credits.totalCredits,
+                used: credits.usedCredits,
+                remaining: credits.totalCredits - credits.usedCredits
+              } : null,
+              subscription: subscription ? {
+                status: subscription.status,
+                endDate: subscription.endDate,
+                packageId: subscription.packageId
+              } : null
+            };
+          } catch (error) {
+            console.error(`Error fetching data for user ${user.id}:`, error);
+            return {
+              ...user,
+              credits: null,
+              subscription: null
+            };
+          }
+        })
+      );
+      
+      res.json(usersWithData);
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
