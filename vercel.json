@@ -1,27 +1,22 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "package.json",
-      "use": "@vercel/static-build",
-      "config": {
-        "buildCommand": "cd client && npx vite build --outDir ../dist",
-        "outputDirectory": "dist"
-      }
-    },
-    {
-      "src": "api/*.ts",
-      "use": "@vercel/node"
+  "framework": "vite",
+  "buildCommand": "cd client && npx vite build --emptyOutDir --outDir ../dist",
+  "outputDirectory": "dist",
+  "installCommand": "npm install",
+  "functions": {
+    "api/*.ts": {
+      "runtime": "@vercel/node"
     }
-  ],
-  "routes": [
+  },
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.ts"
+      "source": "/api/(.*)",
+      "destination": "/api/index"
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

@@ -10,5 +10,9 @@ README.md
 .replit
 drizzle.config.ts
 attached_assets/
-dist/
+client/dist/
 .vite/
+build.js
+vite.config.production.ts
+public/_redirects
+public/index.html

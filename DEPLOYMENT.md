@@ -33,8 +33,8 @@ OPENROUTER_API_KEY=your-openrouter-api-key
 Vercel will automatically detect the settings from `vercel.json`:
 
 - **Framework Preset**: Vite (configured in vercel.json)
-- **Build Command**: `cd client && vite build` (configured in vercel.json)
-- **Output Directory**: `client/dist` (configured in vercel.json)
+- **Build Command**: `cd client && npx vite build --emptyOutDir --outDir ../dist`
+- **Output Directory**: `dist` (configured in vercel.json)
 - **Install Command**: `npm install` (configured in vercel.json)
 
 ### 3. Environment Variables
@@ -77,11 +77,16 @@ Click "Deploy" and Vercel will:
 
 ### Common Issues and Solutions
 
-1. **404 Error on Main Page**
+1. **Raw Code Instead of Website**
+   - Missing toaster component: Create `client/src/components/ui/toaster.tsx`
+   - Incorrect build output: Ensure build outputs to root `/dist` directory
+   - Verify `dist/index.html` exists after build
+   - Check framework is set to "vite" in vercel.json
+
+2. **404 Error on Main Page**
    - Ensure `vercel.json` has correct rewrites configuration
-   - Check that `client/dist/index.html` exists after build
-   - Verify build output directory is set to `client/dist`
-   - Confirm framework is set to "vite" in vercel.json
+   - Verify build output directory is set to `dist`
+   - Confirm SPA routing with catch-all route works
 
 2. **API Routes Not Working**
    - Confirm API routes start with `/api/`
