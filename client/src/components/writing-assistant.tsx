@@ -107,30 +107,30 @@ export default function WritingAssistant({ isOpen, onClose }: WritingAssistantPr
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
-        <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-semibold text-foreground">
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white border border-gray-200 rounded-lg shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-white">
+          <h2 className="text-xl font-semibold text-gray-900">
             Academic Writing Assistant
           </h2>
-          <Button variant="ghost" onClick={onClose}>
+          <Button variant="ghost" onClick={onClose} className="text-gray-500 hover:text-gray-700">
             ×
           </Button>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] bg-white">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Input Section */}
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">
+                <label className="block text-sm font-medium mb-2 text-gray-700">
                   Masukkan Teks untuk Dianalisis
                 </label>
                 <Textarea
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                   placeholder="Tuliskan atau tempelkan teks akademik Anda di sini..."
-                  className="min-h-[300px] resize-none"
+                  className="min-h-[300px] resize-none border-gray-300 focus:border-primary focus:ring-primary"
                 />
               </div>
               
@@ -158,8 +158,8 @@ export default function WritingAssistant({ isOpen, onClose }: WritingAssistantPr
               {analysis && (
                 <>
                   {/* Scores */}
-                  <Card className="p-4">
-                    <h3 className="font-semibold mb-3">Skor Akademik</h3>
+                  <Card className="p-4 bg-white border border-gray-200 shadow-sm">
+                    <h3 className="font-semibold mb-3 text-gray-900">Skor Akademik</h3>
                     <div className="grid grid-cols-3 gap-4 text-center">
                       <div>
                         <div className={`text-2xl font-bold ${getScoreColor(analysis.readabilityScore)}`}>
@@ -183,8 +183,8 @@ export default function WritingAssistant({ isOpen, onClose }: WritingAssistantPr
                   </Card>
 
                   {/* Statistics */}
-                  <Card className="p-4">
-                    <h3 className="font-semibold mb-3">Statistik Teks</h3>
+                  <Card className="p-4 bg-white border border-gray-200 shadow-sm">
+                    <h3 className="font-semibold mb-3 text-gray-900">Statistik Teks</h3>
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="flex justify-between">
                         <span>Kata:</span>
@@ -214,13 +214,13 @@ export default function WritingAssistant({ isOpen, onClose }: WritingAssistantPr
                   </Card>
 
                   {/* Suggestions */}
-                  <Card className="p-4">
-                    <h3 className="font-semibold mb-3">
+                  <Card className="p-4 bg-white border border-gray-200 shadow-sm">
+                    <h3 className="font-semibold mb-3 text-gray-900">
                       Saran Perbaikan ({analysis.suggestions.length})
                     </h3>
                     <div className="space-y-3 max-h-[300px] overflow-y-auto">
                       {analysis.suggestions.map((suggestion, index) => (
-                        <div key={index} className="border rounded-lg p-3">
+                        <div key={index} className="border border-gray-200 rounded-lg p-3 bg-gray-50">
                           <div className="flex items-start gap-2">
                             <div className="mt-0.5">
                               {getTypeIcon(suggestion.type)}
@@ -262,9 +262,9 @@ export default function WritingAssistant({ isOpen, onClose }: WritingAssistantPr
               )}
 
               {!analysis && (
-                <Card className="p-8 text-center">
-                  <BookOpen className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                  <p className="text-muted-foreground">
+                <Card className="p-8 text-center bg-white border border-gray-200 shadow-sm">
+                  <BookOpen className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <p className="text-gray-600">
                     Masukkan teks dan klik "Analisis Teks" untuk mendapatkan saran penulisan akademik
                   </p>
                 </Card>
