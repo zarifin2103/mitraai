@@ -515,6 +515,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   };
 
+  // Create new user (admin only)
+  app.post('/api/admin/users', isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { username, email, password, firstName, lastName, isAdmin } = req.body;
+      
+      // Check if user already exists
+      const existingUser = await storage.getUserByUsername(username);
+      if (existingUser) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+
+      const existingEmail = await storage.getUserByEmail(email);
+      if (existingEmail) {
+        return res.status(400).json({ message: "Email already exists" });
+      }
+
+      // Create user with hashed password
+      const bcrypt = await import('bcrypt');
+      const hashedPassword = await bcrypt.hash(password, 10);
+      const newUser = await storage.createUser({
+        username,
+        email,
+        password: hashedPassword,
+        firstName: firstName || null,
+        lastName: lastName || null,
+        isAdmin: isAdmin || false,
+      });
+
+      // Create default credits for new user
+      await storage.createUserCredits({
+        userId: newUser.id,
+        totalCredits: 100,
+        usedCredits: 0,
+      });
+
+      res.json({ message: "User created successfully", user: newUser });
+    } catch (error) {
+      console.error("Error creating user:", error);
+      res.status(500).json({ message: "Failed to create user" });
+    }
+  });
+
   // Admin Routes
   // Users management with extended data
   app.get('/api/admin/users', isAuthenticated, isAdmin, async (req: any, res) => {
