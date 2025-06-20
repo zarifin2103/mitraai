@@ -109,6 +109,24 @@ export default function ChatArea({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const copyToClipboard = async (text: string, messageId: number) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedMessageId(messageId);
+      toast({
+        title: "Pesan disalin",
+        description: "Teks berhasil disalin ke clipboard",
+      });
+      setTimeout(() => setCopiedMessageId(null), 2000);
+    } catch (error) {
+      toast({
+        title: "Gagal menyalin",
+        description: "Tidak dapat menyalin teks ke clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (!chatId) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50">
@@ -202,14 +220,50 @@ export default function ChatArea({
               )}
               
               <div
-                className={`rounded-lg p-4 max-w-2xl ${
+                className={`rounded-lg p-4 max-w-2xl relative group ${
                   msg.role === "user"
                     ? "bg-primary text-white"
                     : "bg-gray-100 text-gray-800"
                 }`}
               >
-                <div className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {msg.content}
+                {msg.role === "assistant" && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity h-6 w-6 p-0"
+                    onClick={() => copyToClipboard(msg.content, msg.id)}
+                  >
+                    {copiedMessageId === msg.id ? (
+                      <Check className="h-3 w-3" />
+                    ) : (
+                      <Copy className="h-3 w-3" />
+                    )}
+                  </Button>
+                )}
+                
+                <div className="text-sm leading-relaxed">
+                  {msg.role === "assistant" ? (
+                    <ReactMarkdown 
+                      remarkPlugins={[remarkGfm]}
+                      className="prose prose-sm max-w-none prose-headings:text-gray-800 prose-p:text-gray-800 prose-strong:text-gray-900 prose-ul:text-gray-800 prose-ol:text-gray-800"
+                      components={{
+                        h1: ({node, ...props}) => <h1 className="text-lg font-bold mb-2 text-gray-800" {...props} />,
+                        h2: ({node, ...props}) => <h2 className="text-base font-semibold mb-2 text-gray-800" {...props} />,
+                        h3: ({node, ...props}) => <h3 className="text-sm font-semibold mb-1 text-gray-800" {...props} />,
+                        ul: ({node, ...props}) => <ul className="list-disc list-inside mb-2 space-y-1" {...props} />,
+                        ol: ({node, ...props}) => <ol className="list-decimal list-inside mb-2 space-y-1" {...props} />,
+                        li: ({node, ...props}) => <li className="text-gray-800" {...props} />,
+                        p: ({node, ...props}) => <p className="mb-2 text-gray-800" {...props} />,
+                        strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                      }}
+                    >
+                      {msg.content}
+                    </ReactMarkdown>
+                  ) : (
+                    <div className="whitespace-pre-wrap">
+                      {msg.content}
+                    </div>
+                  )}
                 </div>
                 <div className="text-xs opacity-60 mt-2">
                   {new Date(msg.createdAt).toLocaleTimeString()}
