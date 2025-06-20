@@ -3,6 +3,64 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated } from "./auth";
 import { generateAIResponse, generateDocumentContent } from "./openai";
+
+// Enhanced research insights generation
+async function generateResearchInsights(topic: string, chatId: number) {
+  // Simulated research insights generation (replace with real academic API integration)
+  const sources = [
+    {
+      title: `Analisis Mendalam tentang ${topic}`,
+      authors: "Peneliti Akademik Indonesia",
+      journal: "Jurnal Penelitian Nasional",
+      year: 2024,
+      abstract: `Penelitian komprehensif mengenai ${topic} dengan fokus pada konteks akademik Indonesia. Studi ini menganalisis berbagai aspek teoritis dan praktis yang relevan dengan pengembangan penelitian di bidang ini.`,
+      keywords: [topic.toLowerCase(), "penelitian", "akademik", "indonesia"],
+      relevanceScore: "0.95",
+      sourceType: "academic",
+      citationCount: 45,
+    },
+    {
+      title: `Metodologi Penelitian dalam ${topic}`,
+      authors: "Tim Riset Universitas",
+      journal: "Indonesian Academic Review",
+      year: 2023,
+      abstract: `Kajian metodologis yang mendalam tentang pendekatan penelitian terkini dalam bidang ${topic}. Penelitian ini menyajikan framework yang dapat digunakan untuk meningkatkan kualitas riset akademik.`,
+      keywords: [topic.toLowerCase(), "metodologi", "framework", "kualitas"],
+      relevanceScore: "0.88",
+      sourceType: "academic",
+      citationCount: 32,
+    }
+  ];
+
+  const keywords = [
+    {
+      keyword: topic.toLowerCase(),
+      frequency: 5,
+      context: "Topik utama penelitian",
+      importanceScore: "0.95",
+    },
+    {
+      keyword: "metodologi penelitian",
+      frequency: 3,
+      context: "Pendekatan sistematis",
+      importanceScore: "0.85",
+    },
+    {
+      keyword: "analisis akademik",
+      frequency: 4,
+      context: "Proses evaluasi ilmiah",
+      importanceScore: "0.80",
+    },
+    {
+      keyword: "konteks indonesia",
+      frequency: 2,
+      context: "Relevansi lokal",
+      importanceScore: "0.75",
+    }
+  ];
+
+  return { sources, keywords };
+}
 import { insertChatSchema, insertMessageSchema, insertDocumentSchema, insertAdminSettingSchema } from "@shared/schema";
 import { z } from "zod";
 

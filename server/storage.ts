@@ -6,6 +6,9 @@ import {
   adminSettings,
   llmModels,
   userCredits,
+  researchSources,
+  researchQuestions,
+  researchKeywords,
   type User,
   type UpsertUser,
   type Chat,
@@ -20,6 +23,12 @@ import {
   type InsertLlmModel,
   type UserCredits,
   type InsertUserCredits,
+  type ResearchSource,
+  type InsertResearchSource,
+  type ResearchQuestion,
+  type InsertResearchQuestion,
+  type ResearchKeyword,
+  type InsertResearchKeyword,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
@@ -66,6 +75,16 @@ export interface IStorage {
   createUserCredits(userCredits: InsertUserCredits): Promise<UserCredits>;
   updateUserCredits(userId: string, updates: Partial<UserCredits>): Promise<UserCredits>;
   deductCredits(userId: string, amount: number): Promise<UserCredits>;
+  
+  // Research operations
+  getChatResearchSources(chatId: number): Promise<ResearchSource[]>;
+  addResearchSource(source: InsertResearchSource): Promise<ResearchSource>;
+  getChatResearchQuestions(chatId: number): Promise<ResearchQuestion[]>;
+  addResearchQuestion(question: InsertResearchQuestion): Promise<ResearchQuestion>;
+  updateResearchQuestion(id: number, updates: Partial<ResearchQuestion>): Promise<ResearchQuestion>;
+  getChatResearchKeywords(chatId: number): Promise<ResearchKeyword[]>;
+  addResearchKeyword(keyword: InsertResearchKeyword): Promise<ResearchKeyword>;
+  updateKeywordFrequency(chatId: number, keyword: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
