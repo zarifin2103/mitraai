@@ -182,10 +182,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Chat routes
+  // Chat routes (with user isolation)
   app.get('/api/chats', isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
+      console.log(`Fetching chats for user: ${userId}`);
       const chats = await storage.getUserChats(userId);
       res.json(chats);
     } catch (error) {
@@ -222,6 +223,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/chats/:chatId/messages', isAuthenticated, async (req: any, res) => {
     try {
       const chatId = parseInt(req.params.chatId);
+      const userId = req.user.id;
+      
+      // Verify that the chat belongs to the authenticated user
+      const userChats = await storage.getUserChats(userId);
+      const chatBelongsToUser = userChats.some(chat => chat.id === chatId);
+      
+      if (!chatBelongsToUser) {
+        return res.status(403).json({ message: "Access denied to this chat" });
+      }
+      
       const messages = await storage.getChatMessages(chatId);
       res.json(messages);
     } catch (error) {
@@ -234,6 +245,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const chatId = parseInt(req.params.chatId);
       const { content, mode, modelId } = req.body;
+      const userId = req.user.id;
+      
+      // Verify that the chat belongs to the authenticated user
+      const userChats = await storage.getUserChats(userId);
+      const chatBelongsToUser = userChats.some(chat => chat.id === chatId);
+      
+      if (!chatBelongsToUser) {
+        return res.status(403).json({ message: "Access denied to this chat" });
+      }
       
       // Add user message
       const userMessage = await storage.addMessage({
