@@ -104,6 +104,10 @@ export default function ChatArea({
 
   const formatMessage = (content: string) => {
     // Simple markdown-like formatting
+    if (!content || typeof content !== 'string') {
+      return <div key="empty">No content</div>;
+    }
+    
     return content
       .split('\n')
       .map((line, index) => {
@@ -207,7 +211,7 @@ export default function ChatArea({
                   }`}
                 >
                   <div className="prose prose-sm max-w-none">
-                    {formatMessage(msg.content)}
+                    {formatMessage(msg.content || "")}
                   </div>
                 </div>
                 

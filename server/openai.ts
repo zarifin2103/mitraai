@@ -5,15 +5,19 @@ import { storage } from "./storage";
 const DEFAULT_MODEL = "gpt-4o";
 
 async function getOpenRouterKey(): Promise<string> {
-  // First try to get from admin settings
-  const setting = await storage.getAdminSetting("openrouter_key");
-  if (setting?.value && setting.value !== "configured") {
-    return setting.value;
-  }
-  
-  // Fallback to environment variable
+  // Use environment variable directly
   if (process.env.OPENROUTER_API_KEY) {
     return process.env.OPENROUTER_API_KEY;
+  }
+  
+  // Try admin settings as fallback
+  try {
+    const setting = await storage.getAdminSetting("openrouter_key");
+    if (setting?.value && setting.value !== "configured") {
+      return setting.value;
+    }
+  } catch (error) {
+    console.error("Admin settings not available:", error);
   }
   
   throw new Error("OpenRouter API key not configured. Please contact administrator.");
