@@ -31,6 +31,8 @@ export default function ChatArea({
   const { data: messages = [], isLoading } = useQuery<Message[]>({
     queryKey: ["/api/chats", chatId, "messages"],
     enabled: !!chatId,
+    staleTime: 0,
+    cacheTime: 0,
     onError: (error: Error) => {
       if (isUnauthorizedError(error)) {
         toast({
@@ -102,34 +104,69 @@ export default function ChatArea({
     }
   };
 
-  const formatMessage = (content: string) => {
+  const formatMessage = (content?: string) => {
     if (!content || content.trim() === '') {
-      return "No content";
+      return <span className="text-gray-400 italic">No content available</span>;
     }
     
-    // Simple formatting for now to ensure content displays
     return content
       .split('\n')
       .map((line, index) => {
+        // Headers with **
         if (line.startsWith('**') && line.endsWith('**') && line.length > 4) {
-          return <div key={index} className="font-bold text-lg mt-3 mb-2">{line.slice(2, -2)}</div>;
+          return (
+            <div key={index} className="font-bold text-base mt-3 mb-2">
+              {line.slice(2, -2)}
+            </div>
+          );
         }
+        
+        // Markdown headers
         if (line.startsWith('# ')) {
-          return <div key={index} className="font-bold text-xl mt-4 mb-2">{line.slice(2)}</div>;
+          return (
+            <div key={index} className="font-bold text-lg mt-4 mb-2">
+              {line.slice(2)}
+            </div>
+          );
         }
+        
         if (line.startsWith('## ')) {
-          return <div key={index} className="font-semibold text-lg mt-3 mb-2">{line.slice(3)}</div>;
+          return (
+            <div key={index} className="font-semibold text-base mt-3 mb-2">
+              {line.slice(3)}
+            </div>
+          );
         }
+        
+        // Lists
         if (line.startsWith('- ') || line.startsWith('* ')) {
-          return <div key={index} className="ml-4 mb-1">• {line.slice(2)}</div>;
+          return (
+            <div key={index} className="ml-4 mb-1">
+              • {line.slice(2)}
+            </div>
+          );
         }
+        
+        // Numbered lists
         if (/^\d+\.\s/.test(line)) {
-          return <div key={index} className="ml-4 mb-1">{line}</div>;
+          return (
+            <div key={index} className="ml-4 mb-1">
+              {line}
+            </div>
+          );
         }
+        
+        // Regular paragraphs
         if (line.trim()) {
-          return <div key={index} className="mb-2">{line}</div>;
+          return (
+            <div key={index} className="mb-2">
+              {line}
+            </div>
+          );
         }
-        return <br key={index} />;
+        
+        // Empty lines
+        return <div key={index} className="h-2" />;
       });
   };
 
@@ -210,10 +247,8 @@ export default function ChatArea({
                       : "bg-gray-100 text-gray-800"
                   }`}
                 >
-                  <div className="prose prose-sm max-w-none">
-                    <div className="whitespace-pre-wrap">
-                      {formatMessage(msg.content || "")}
-                    </div>
+                  <div className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {formatMessage(msg.content)}
                   </div>
                 </div>
                 
